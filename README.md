@@ -11,7 +11,7 @@ Traditional settings management requires a central registry that knows about eve
 ## Installation
 
 ```xml
-<PackageReference Include="ComposableSettings" Version="1.0.0" />
+<PackageReference Include="ComposableSettings" Version="1.0.1" />
 ```
 
 ## Minimal Setup
@@ -67,7 +67,9 @@ public sealed partial class AppearanceViewModel
     public ClockViewModel Clock { get; private set; } = null!;
 }
 
-[SettingsComponent("clock", typeof(ClockSettings))]
+// Hand-written component: it declares its own constructor, so it opts OUT
+// of the generated lifecycle (see "Generated Settings Lifecycle" below).
+[SettingsComponent("clock", typeof(ClockSettings), GenerateLifecycle = false)]
 public sealed class ClockViewModel
 {
     private readonly IComponentSettings<ClockSettings> _settings;
@@ -113,18 +115,27 @@ A simple `InMemoryComponentSettingsStore` is included for testing and non-persis
 
 ## Generated Settings Lifecycle
 
-ComposableSettings can generate a minimal async settings lifecycle for components that opt in.
+ComposableSettings is **lifecycle/async-first**: it generates a minimal async
+settings lifecycle for every component that declares a settings type. This is
+**opt-out**, not opt-in.
 
-Enable it via `GenerateLifecycle = true` on the component attribute:
+- A component with a settings type generates the lifecycle **by default** — no
+  attribute argument needed.
+- Set `GenerateLifecycle = false` to make a component a pure grouping/tree node
+  or to keep a hand-written component (e.g. one with its own constructor).
+- A `[SettingsComponent("name")]` **without** a settings type is always a pure
+  grouping node — no lifecycle, no diagnostic.
 
 ```csharp
-[SettingsComponent(
-    "sleepMode",
-    typeof(SleepModeSettings),
-    GenerateLifecycle = true)]
+// Lifecycle generated automatically (settings type present, no opt-out):
+[SettingsComponent("sleepMode", typeof(SleepModeSettings))]
 public partial class SleepModeComponent
 {
 }
+
+// Explicit opt-out:
+[SettingsComponent("sleepMode", typeof(SleepModeSettings), GenerateLifecycle = false)]
+public sealed class HandWrittenSleepModeComponent { /* your own code */ }
 ```
 
 The source generator emits:

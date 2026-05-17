@@ -32,10 +32,10 @@ public sealed class SettingsRegistrationGeneratorTests(ITestOutputHelper output)
                 public LogRenderViewModel LogRender { get; private set; } = null!;
             }
 
-            [SettingsComponent("clock", typeof(ClockSettings))]
+            [SettingsComponent("clock", typeof(ClockSettings), GenerateLifecycle = false)]
             public sealed class ClockViewModel { }
 
-            [SettingsComponent("logRender", typeof(LogRenderSettings))]
+            [SettingsComponent("logRender", typeof(LogRenderSettings), GenerateLifecycle = false)]
             public sealed class LogRenderViewModel { }
             """);
 
@@ -75,7 +75,7 @@ public sealed class SettingsRegistrationGeneratorTests(ITestOutputHelper output)
                 public LeafViewModel Leaf { get; private set; } = null!;
             }
 
-            [SettingsComponent("leaf", typeof(MySettings))]
+            [SettingsComponent("leaf", typeof(MySettings), GenerateLifecycle = false)]
             public sealed class LeafViewModel { }
             """);
 
@@ -129,7 +129,7 @@ public sealed class SettingsRegistrationGeneratorTests(ITestOutputHelper output)
                 public LeafViewModel Leaf { get; private set; } = null!;
             }
 
-            [SettingsComponent("leaf", typeof(MySettings))]
+            [SettingsComponent("leaf", typeof(MySettings), GenerateLifecycle = false)]
             public sealed class LeafViewModel { }
             """);
 
@@ -157,10 +157,10 @@ public sealed class SettingsRegistrationGeneratorTests(ITestOutputHelper output)
                 public ChildBViewModel ChildB { get; private set; } = null!;
             }
 
-            [SettingsComponent("same", typeof(SettingsA))]
+            [SettingsComponent("same", typeof(SettingsA), GenerateLifecycle = false)]
             public sealed class ChildAViewModel { }
 
-            [SettingsComponent("same", typeof(SettingsB))]
+            [SettingsComponent("same", typeof(SettingsB), GenerateLifecycle = false)]
             public sealed class ChildBViewModel { }
             """);
 
@@ -192,10 +192,10 @@ public sealed class SettingsRegistrationGeneratorTests(ITestOutputHelper output)
                 public LeafBViewModel Leaf { get; private set; } = null!;
             }
 
-            [SettingsComponent("leaf", typeof(SettingsA))]
+            [SettingsComponent("leaf", typeof(SettingsA), GenerateLifecycle = false)]
             public sealed class LeafAViewModel { }
 
-            [SettingsComponent("leaf", typeof(SettingsB))]
+            [SettingsComponent("leaf", typeof(SettingsB), GenerateLifecycle = false)]
             public sealed class LeafBViewModel { }
             """);
 

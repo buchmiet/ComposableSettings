@@ -33,19 +33,6 @@ public sealed class SettingsLifecycleGenerator : IIncrementalGenerator
         var attribute = classSymbol.GetAttribute(GeneratorConstants.SettingsComponentAttributeFullName);
         if (attribute is null) return null;
 
-        // Check GenerateLifecycle named argument
-        var generateLifecycle = false;
-        foreach (var namedArg in attribute.NamedArguments)
-        {
-            if (namedArg.Key == "GenerateLifecycle" && namedArg.Value.Value is true)
-            {
-                generateLifecycle = true;
-                break;
-            }
-        }
-
-        if (!generateLifecycle) return null;
-
         var name = attribute.ConstructorArguments.Length > 0
             ? attribute.ConstructorArguments[0].Value as string
             : SettingsNameHelper.ResolveComponentName(classSymbol);
@@ -56,6 +43,24 @@ public sealed class SettingsLifecycleGenerator : IIncrementalGenerator
         {
             settingsType = st;
         }
+
+        // GenerateLifecycle is opt-out (lifecycle/async-first by default):
+        //  - explicit GenerateLifecycle = false  -> skip (no lifecycle)
+        //  - explicit GenerateLifecycle = true    -> generate (CSP012 if no settings type)
+        //  - omitted + a settings type declared   -> generate (the default)
+        //  - omitted + no settings type           -> pure grouping node, skip silently
+        bool? explicitFlag = null;
+        foreach (var namedArg in attribute.NamedArguments)
+        {
+            if (namedArg.Key == "GenerateLifecycle")
+            {
+                explicitFlag = namedArg.Value.Value is true;
+                break;
+            }
+        }
+
+        var generateLifecycle = explicitFlag ?? settingsType is not null;
+        if (!generateLifecycle) return null;
 
         return new ComponentInfo(
             classSyntax,

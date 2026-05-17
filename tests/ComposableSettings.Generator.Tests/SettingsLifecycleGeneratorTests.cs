@@ -5,8 +5,9 @@ namespace ComposableSettings.Generator.Tests;
 public sealed class SettingsLifecycleGeneratorTests(ITestOutputHelper output) : GeneratorBaseClass(output)
 {
     [Fact]
-    public void No_lifecycle_by_default()
+    public void Lifecycle_generated_by_default_when_settings_type_declared()
     {
+        // Opt-out: a settings type and no GenerateLifecycle argument => lifecycle.
         var (diagnostics, generatedSources) = CompileAndRunAllGenerators("""
             using ComposableSettings;
 
@@ -19,8 +20,47 @@ public sealed class SettingsLifecycleGeneratorTests(ITestOutputHelper output) : 
             """);
 
         Assert.Empty(diagnostics.Where(d => d.Severity == Microsoft.CodeAnalysis.DiagnosticSeverity.Error));
+        Assert.True(generatedSources.Values.Any(s => s.Contains("ResetSettingsAsync")),
+            "Lifecycle is opt-out: it must generate by default when a settings type is declared");
+    }
+
+    [Fact]
+    public void Explicit_opt_out_skips_lifecycle()
+    {
+        var (diagnostics, generatedSources) = CompileAndRunAllGenerators("""
+            using ComposableSettings;
+
+            namespace TestNs;
+
+            public sealed class MySettings { }
+
+            [SettingsComponent("x", typeof(MySettings), GenerateLifecycle = false)]
+            public partial class MyComponent { }
+            """);
+
+        Assert.Empty(diagnostics.Where(d => d.Severity == Microsoft.CodeAnalysis.DiagnosticSeverity.Error));
         Assert.False(generatedSources.Values.Any(s => s.Contains("ResetSettingsAsync")),
-            "Should not generate lifecycle members without GenerateLifecycle=true");
+            "GenerateLifecycle = false must disable lifecycle generation");
+    }
+
+    [Fact]
+    public void Grouping_node_without_settings_type_skips_lifecycle_silently()
+    {
+        // No settings type and no explicit flag => pure tree/grouping node.
+        // Must NOT generate lifecycle and must NOT raise CSP012.
+        var (diagnostics, generatedSources) = CompileAndRunAllGenerators("""
+            using ComposableSettings;
+
+            namespace TestNs;
+
+            [SettingsComponent("appearance")]
+            public partial class AppearanceComponent { }
+            """);
+
+        Assert.Empty(diagnostics.Where(d => d.Severity == Microsoft.CodeAnalysis.DiagnosticSeverity.Error));
+        Assert.DoesNotContain(diagnostics, d => d.Id == "CSP012");
+        Assert.False(generatedSources.Values.Any(s => s.Contains("ResetSettingsAsync")),
+            "A grouping node without a settings type must not get a lifecycle");
     }
 
     [Fact]

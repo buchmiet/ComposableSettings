@@ -18,5 +18,12 @@ public sealed class SettingsComponentAttribute : Attribute
 
     public Type? SettingsType { get; }
 
-    public bool GenerateLifecycle { get; set; }
+    /// <summary>
+    /// Whether to generate the async-first lifecycle (Settings property,
+    /// SaveSettingsAsync, ResetSettingsAsync, SettingsUpdatedAsync, and the
+    /// component constructor). Opt-out: defaults to <c>true</c> whenever a
+    /// settings type is declared. Set to <c>false</c> to make the component a
+    /// pure grouping/tree node without lifecycle.
+    /// </summary>
+    public bool GenerateLifecycle { get; set; } = true;
 }
