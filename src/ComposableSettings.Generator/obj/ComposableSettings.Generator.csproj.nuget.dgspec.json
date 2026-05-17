@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\sandbox\\actuator\\packages\\ComposableSettings\\src\\ComposableSettings.Generator\\ComposableSettings.Generator.csproj": {}
+    "C:\\Users\\newon\\source\\repos\\ComposableSettings\\src\\ComposableSettings.Generator\\ComposableSettings.Generator.csproj": {}
   },
   "projects": {
-    "C:\\sandbox\\actuator\\packages\\ComposableSettings\\src\\ComposableSettings.Generator\\ComposableSettings.Generator.csproj": {
+    "C:\\Users\\newon\\source\\repos\\ComposableSettings\\src\\ComposableSettings.Generator\\ComposableSettings.Generator.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\sandbox\\actuator\\packages\\ComposableSettings\\src\\ComposableSettings.Generator\\ComposableSettings.Generator.csproj",
+        "projectUniqueName": "C:\\Users\\newon\\source\\repos\\ComposableSettings\\src\\ComposableSettings.Generator\\ComposableSettings.Generator.csproj",
         "projectName": "ComposableSettings.Generator",
-        "projectPath": "C:\\sandbox\\actuator\\packages\\ComposableSettings\\src\\ComposableSettings.Generator\\ComposableSettings.Generator.csproj",
+        "projectPath": "C:\\Users\\newon\\source\\repos\\ComposableSettings\\src\\ComposableSettings.Generator\\ComposableSettings.Generator.csproj",
         "packagesPath": "C:\\Users\\newon\\.nuget\\packages\\",
-        "outputPath": "C:\\sandbox\\actuator\\packages\\ComposableSettings\\src\\ComposableSettings.Generator\\obj\\",
+        "outputPath": "C:\\Users\\newon\\source\\repos\\ComposableSettings\\src\\ComposableSettings.Generator\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

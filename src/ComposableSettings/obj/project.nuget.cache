@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "dgSpecHash": "xsIpjpMyM7U=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\newon\\source\\repos\\ComposableSettings\\src\\ComposableSettings\\ComposableSettings.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\newon\\.nuget\\packages\\microsoft.extensions.dependencyinjection\\10.0.7\\microsoft.extensions.dependencyinjection.10.0.7.nupkg.sha512",
+    "C:\\Users\\newon\\.nuget\\packages\\microsoft.extensions.dependencyinjection.abstractions\\10.0.7\\microsoft.extensions.dependencyinjection.abstractions.10.0.7.nupkg.sha512"
+  ],
+  "logs": []
+}

@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "FTnxhJGpXKY=",
+  "dgSpecHash": "V6yd2GxA48c=",
   "success": true,
-  "projectFilePath": "C:\\sandbox\\actuator\\packages\\ComposableSettings\\src\\ComposableSettings.Generator\\ComposableSettings.Generator.csproj",
+  "projectFilePath": "C:\\Users\\newon\\source\\repos\\ComposableSettings\\src\\ComposableSettings.Generator\\ComposableSettings.Generator.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\newon\\.nuget\\packages\\microsoft.codeanalysis.analyzers\\3.11.0\\microsoft.codeanalysis.analyzers.3.11.0.nupkg.sha512",
     "C:\\Users\\newon\\.nuget\\packages\\microsoft.codeanalysis.common\\4.12.0\\microsoft.codeanalysis.common.4.12.0.nupkg.sha512",

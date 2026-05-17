@@ -1,0 +1,22 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
+  <metadata>
+    <id>ComposableSettings</id>
+    <version>1.0.0</version>
+    <authors>Actuator Contributors</authors>
+    <readme>README.md</readme>
+    <description>Component-based settings composition with source-generated child wiring, registration, and DI.</description>
+    <tags>settings composition source-generator roslyn dotnet component-settings modular-settings</tags>
+    <repository type="git" commit="105aee2a7987c0bb8af92e432996cdd95bcbff10" />
+    <dependencies>
+      <group targetFramework="net10.0">
+        <dependency id="Microsoft.Extensions.DependencyInjection" version="10.0.7" exclude="Build,Analyzers" />
+      </group>
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="C:\Users\newon\source\repos\ComposableSettings\src\ComposableSettings\bin\Release\net10.0\ComposableSettings.dll" target="lib\net10.0\ComposableSettings.dll" />
+    <file src="C:\Users\newon\source\repos\ComposableSettings\src\ComposableSettings.Generator\bin\Release\netstandard2.0\ComposableSettings.Generator.dll" target="analyzers\dotnet\cs\ComposableSettings.Generator.dll" />
+    <file src="C:\Users\newon\source\repos\ComposableSettings\README.md" target="\README.md" />
+  </files>
+</package>

@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("ComposableSettings.Generator")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+205c307435accf75c74122d323f5351c63597d4f")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+105aee2a7987c0bb8af92e432996cdd95bcbff10")]
 [assembly: System.Reflection.AssemblyProductAttribute("ComposableSettings.Generator")]
 [assembly: System.Reflection.AssemblyTitleAttribute("ComposableSettings.Generator")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

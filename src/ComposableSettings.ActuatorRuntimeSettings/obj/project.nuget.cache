@@ -1,0 +1,23 @@
+{
+  "version": 2,
+  "dgSpecHash": "LQ3luQl8Rkc=",
+  "success": false,
+  "projectFilePath": "C:\\Users\\newon\\source\\repos\\ComposableSettings\\src\\ComposableSettings.ActuatorRuntimeSettings\\ComposableSettings.ActuatorRuntimeSettings.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\newon\\.nuget\\packages\\microsoft.extensions.dependencyinjection\\10.0.7\\microsoft.extensions.dependencyinjection.10.0.7.nupkg.sha512",
+    "C:\\Users\\newon\\.nuget\\packages\\microsoft.extensions.dependencyinjection.abstractions\\10.0.7\\microsoft.extensions.dependencyinjection.abstractions.10.0.7.nupkg.sha512"
+  ],
+  "logs": [
+    {
+      "code": "NU1104",
+      "level": "Error",
+      "message": "Unable to find project 'C:\\Users\\newon\\source\\Host\\RuntimeSettings\\RuntimeSettings.csproj'. Check that the project reference is valid and that the project file exists.",
+      "projectPath": "C:\\Users\\newon\\source\\repos\\ComposableSettings\\src\\ComposableSettings.ActuatorRuntimeSettings\\ComposableSettings.ActuatorRuntimeSettings.csproj",
+      "filePath": "C:\\Users\\newon\\source\\repos\\ComposableSettings\\src\\ComposableSettings.ActuatorRuntimeSettings\\ComposableSettings.ActuatorRuntimeSettings.csproj",
+      "libraryId": "C:\\Users\\newon\\source\\Host\\RuntimeSettings\\RuntimeSettings.csproj",
+      "targetGraphs": [
+        "net10.0"
+      ]
+    }
+  ]
+}

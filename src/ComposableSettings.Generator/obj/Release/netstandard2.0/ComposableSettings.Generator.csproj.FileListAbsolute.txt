@@ -9,3 +9,14 @@ C:\sandbox\actuator\packages\ComposableSettings\src\ComposableSettings.Generator
 C:\sandbox\actuator\packages\ComposableSettings\src\ComposableSettings.Generator\obj\Release\netstandard2.0\ComposableSettings.Generator.sourcelink.json
 C:\sandbox\actuator\packages\ComposableSettings\src\ComposableSettings.Generator\obj\Release\netstandard2.0\ComposableSettings.Generator.dll
 C:\sandbox\actuator\packages\ComposableSettings\src\ComposableSettings.Generator\obj\Release\netstandard2.0\ComposableSettings.Generator.pdb
+C:\Users\newon\source\repos\ComposableSettings\src\ComposableSettings.Generator\bin\Release\netstandard2.0\ComposableSettings.Generator.deps.json
+C:\Users\newon\source\repos\ComposableSettings\src\ComposableSettings.Generator\bin\Release\netstandard2.0\ComposableSettings.Generator.dll
+C:\Users\newon\source\repos\ComposableSettings\src\ComposableSettings.Generator\bin\Release\netstandard2.0\ComposableSettings.Generator.pdb
+C:\Users\newon\source\repos\ComposableSettings\src\ComposableSettings.Generator\obj\Release\netstandard2.0\ComposableSettings.Generator.csproj.AssemblyReference.cache
+C:\Users\newon\source\repos\ComposableSettings\src\ComposableSettings.Generator\obj\Release\netstandard2.0\ComposableSettings.Generator.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\newon\source\repos\ComposableSettings\src\ComposableSettings.Generator\obj\Release\netstandard2.0\ComposableSettings.Generator.AssemblyInfoInputs.cache
+C:\Users\newon\source\repos\ComposableSettings\src\ComposableSettings.Generator\obj\Release\netstandard2.0\ComposableSettings.Generator.AssemblyInfo.cs
+C:\Users\newon\source\repos\ComposableSettings\src\ComposableSettings.Generator\obj\Release\netstandard2.0\ComposableSettings.Generator.csproj.CoreCompileInputs.cache
+C:\Users\newon\source\repos\ComposableSettings\src\ComposableSettings.Generator\obj\Release\netstandard2.0\ComposableSettings.Generator.sourcelink.json
+C:\Users\newon\source\repos\ComposableSettings\src\ComposableSettings.Generator\obj\Release\netstandard2.0\ComposableSettings.Generator.dll
+C:\Users\newon\source\repos\ComposableSettings\src\ComposableSettings.Generator\obj\Release\netstandard2.0\ComposableSettings.Generator.pdb
