@@ -11,7 +11,7 @@ Traditional settings management requires a central registry that knows about eve
 ## Installation
 
 ```xml
-<PackageReference Include="ComposableSettings" Version="1.0.0-preview.2" />
+<PackageReference Include="ComposableSettings" Version="1.0.0" />
 ```
 
 ## Minimal Setup
