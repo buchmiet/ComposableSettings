@@ -27,8 +27,11 @@ jobs:
       - name: Test
         run: dotnet test --configuration Release --no-build
 
+      - name: Show package version
+        run: echo "Package version: 1.0.${{ github.run_number }}"
+
       - name: Pack
-        run: dotnet pack src/ComposableSettings/ComposableSettings.csproj --configuration Release --no-build --output ./artifacts
+        run: dotnet pack src/ComposableSettings/ComposableSettings.csproj --configuration Release --no-build --output ./artifacts /p:PackageVersion=1.0.${{ github.run_number }}
 
       - name: Push to NuGet
         run: dotnet nuget push "./artifacts/*.nupkg" --api-key "${{ secrets.NUGET_API_KEY }}" --source "https://api.nuget.org/v3/index.json" --skip-duplicate
