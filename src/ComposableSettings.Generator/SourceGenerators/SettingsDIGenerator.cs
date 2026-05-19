@@ -1,17 +1,16 @@
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
+using ComposableSettings.Generator.Helpers;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
-using ComposableSettings.Generator.Helpers;
 
 namespace ComposableSettings.Generator.SourceGenerators;
 
 [Generator]
-public sealed class SettingsDIGenerator : IIncrementalGenerator
+public  class SettingsDIGenerator : IIncrementalGenerator
 {
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
@@ -61,13 +60,11 @@ public sealed class SettingsDIGenerator : IIncrementalGenerator
         source.AppendLine();
         source.AppendLine("public static partial class GeneratedSettingsServiceCollectionExtensions");
         source.AppendLine("{");
-        source.AppendLine("    public static IServiceCollection AddGeneratedSettingsComponents(this IServiceCollection services)");
+        source.AppendLine(
+            "    public static IServiceCollection AddGeneratedSettingsComponents(this IServiceCollection services)");
         source.AppendLine("    {");
 
-        foreach (var cls in classList)
-        {
-            source.AppendLine($"        services.AddTransient<{cls.ClassName}>();");
-        }
+        foreach (var cls in classList) source.AppendLine($"        services.AddTransient<{cls.ClassName}>();");
 
         source.AppendLine("        return services;");
         source.AppendLine("    }");
@@ -78,7 +75,7 @@ public sealed class SettingsDIGenerator : IIncrementalGenerator
             SourceText.From(source.ToString(), Encoding.UTF8));
     }
 
-    private sealed class ClassInfo(string className)
+    private  class ClassInfo(string className)
     {
         public string ClassName { get; } = className;
     }

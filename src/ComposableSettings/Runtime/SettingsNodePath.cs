@@ -1,6 +1,6 @@
-namespace ComposableSettings;
+namespace ComposableSettings.Runtime;
 
-public sealed record SettingsNodePath
+public record SettingsNodePath
 {
     private readonly string[] _segments;
 
@@ -22,7 +22,10 @@ public sealed record SettingsNodePath
         return new SettingsNodePath(_segments.Append(ValidateSegment(segment)));
     }
 
-    public override string ToString() => string.Join("/", _segments);
+    public override string ToString()
+    {
+        return string.Join("/", _segments);
+    }
 
     internal static string ValidateSegment(string? segment)
     {
@@ -34,7 +37,11 @@ public sealed record SettingsNodePath
             throw new ArgumentException("Settings path segment cannot contain only whitespace.", nameof(segment));
         if (segment.Contains('/'))
             throw new ArgumentException($"Settings path segment '{segment}' cannot contain '/'.", nameof(segment));
-        return !segment.All(IsAllowedSegmentCharacter) ? throw new ArgumentException($"Settings path segment '{segment}' can contain only letters, digits, '_', '-' or '.'.", nameof(segment)) : segment;
+        return !segment.All(IsAllowedSegmentCharacter)
+            ? throw new ArgumentException(
+                $"Settings path segment '{segment}' can contain only letters, digits, '_', '-' or '.'.",
+                nameof(segment))
+            : segment;
     }
 
     private static bool IsAllowedSegmentCharacter(char value)

@@ -49,7 +49,7 @@ internal static class SymbolExtensions
         }
         else
         {
-            if (type.IsSealed) modifiers.Add("sealed");
+            if (type.IsSealed) modifiers.Add("");
             if (type.IsAbstract) modifiers.Add("abstract");
         }
 

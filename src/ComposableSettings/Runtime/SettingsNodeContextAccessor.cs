@@ -1,6 +1,8 @@
-namespace ComposableSettings;
+using ComposableSettings.Abstractions;
 
-internal sealed class SettingsNodeContextAccessor
+namespace ComposableSettings.Runtime;
+
+internal  class SettingsNodeContextAccessor
 {
     private readonly AsyncLocal<ISettingsNodeContext?> _current = new();
 
@@ -15,7 +17,7 @@ internal sealed class SettingsNodeContextAccessor
         return new RestoreContext(this, previous);
     }
 
-    private sealed class RestoreContext(
+    private  class RestoreContext(
         SettingsNodeContextAccessor accessor,
         ISettingsNodeContext? previous) : IDisposable
     {

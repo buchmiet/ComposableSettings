@@ -1,4 +1,6 @@
-namespace ComposableSettings;
+using ComposableSettings.Runtime;
+
+namespace ComposableSettings.Abstractions;
 
 public interface IComponentSettings<TSettings>
     where TSettings : class, new()

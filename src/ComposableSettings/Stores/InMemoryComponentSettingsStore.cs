@@ -1,8 +1,10 @@
 using System.Collections.Concurrent;
+using ComposableSettings.Abstractions;
+using ComposableSettings.Runtime;
 
-namespace ComposableSettings;
+namespace ComposableSettings.Stores;
 
-public sealed class InMemoryComponentSettingsStore : IComponentSettingsStore
+public  class InMemoryComponentSettingsStore : IComponentSettingsStore
 {
     private readonly ConcurrentDictionary<SettingsStoreKey, object> _settings = new();
 

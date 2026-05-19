@@ -2,16 +2,16 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
+using ComposableSettings.Generator.Helpers;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
-using ComposableSettings.Generator.Helpers;
 
 namespace ComposableSettings.Generator.SourceGenerators;
 
 [Generator]
-public sealed class SettingsLifecycleGenerator : IIncrementalGenerator
+public  class SettingsLifecycleGenerator : IIncrementalGenerator
 {
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
@@ -40,9 +40,7 @@ public sealed class SettingsLifecycleGenerator : IIncrementalGenerator
         INamedTypeSymbol? settingsType = null;
         if (attribute.ConstructorArguments.Length > 1
             && attribute.ConstructorArguments[1].Value is INamedTypeSymbol st)
-        {
             settingsType = st;
-        }
 
         // GenerateLifecycle is opt-out (lifecycle/async-first by default):
         //  - explicit GenerateLifecycle = false  -> skip (no lifecycle)
@@ -51,13 +49,11 @@ public sealed class SettingsLifecycleGenerator : IIncrementalGenerator
         //  - omitted + no settings type           -> pure grouping node, skip silently
         bool? explicitFlag = null;
         foreach (var namedArg in attribute.NamedArguments)
-        {
             if (namedArg.Key == "GenerateLifecycle")
             {
                 explicitFlag = namedArg.Value.Value is true;
                 break;
             }
-        }
 
         var generateLifecycle = explicitFlag ?? settingsType is not null;
         if (!generateLifecycle) return null;
@@ -163,9 +159,8 @@ public sealed class SettingsLifecycleGenerator : IIncrementalGenerator
             .Where(m => m.MethodKind == MethodKind.Constructor && m.DeclaredAccessibility == Accessibility.Public);
 
         foreach (var ctor in ctors)
-        {
-            if (ctor.Parameters.Length == 0) return true;
-        }
+            if (ctor.Parameters.Length == 0)
+                return true;
 
         // If no constructors are defined, compiler provides a public default
         var hasExplicitConstructors = type.GetMembers()
@@ -184,7 +179,7 @@ public sealed class SettingsLifecycleGenerator : IIncrementalGenerator
 
     private static string[] CheckMemberConflicts(INamedTypeSymbol type)
     {
-        var conflicts = new System.Collections.Generic.List<string>();
+        var conflicts = new List<string>();
         var memberNames = new HashSet<string>(type.GetMembers().Select(m => m.Name));
 
         if (memberNames.Contains("Settings")) conflicts.Add("Settings");
@@ -219,15 +214,18 @@ public sealed class SettingsLifecycleGenerator : IIncrementalGenerator
 
         sb.AppendLine($"{accessibility} partial class {className}");
         sb.AppendLine("{");
-        sb.AppendLine($"    private readonly global::ComposableSettings.IComponentSettings<{settingsTypeGlobalName}> _componentSettings;");
+        sb.AppendLine(
+            $"    private readonly global::ComposableSettings.IComponentSettings<{settingsTypeGlobalName}> _componentSettings;");
         sb.AppendLine();
-        sb.AppendLine($"    public {className}(global::ComposableSettings.IComponentSettings<{settingsTypeGlobalName}> componentSettings)");
+        sb.AppendLine(
+            $"    public {className}(global::ComposableSettings.IComponentSettings<{settingsTypeGlobalName}> componentSettings)");
         sb.AppendLine("    {");
         sb.AppendLine("        _componentSettings = componentSettings;");
         sb.AppendLine($"        Settings = new {settingsTypeGlobalName}();");
         sb.AppendLine("    }");
         sb.AppendLine();
-        sb.AppendLine($"    public {settingsTypeGlobalName} Settings {{ get; private set; }} = new {settingsTypeGlobalName}();");
+        sb.AppendLine(
+            $"    public {settingsTypeGlobalName} Settings {{ get; private set; }} = new {settingsTypeGlobalName}();");
         sb.AppendLine();
         sb.AppendLine("    public async Task ResetSettingsAsync(");
         sb.AppendLine("        CancellationToken cancellationToken = default)");
@@ -243,7 +241,7 @@ public sealed class SettingsLifecycleGenerator : IIncrementalGenerator
         sb.AppendLine("        await _componentSettings.SaveAsync(Settings, cancellationToken);");
         sb.AppendLine("    }");
         sb.AppendLine();
-        sb.AppendLine($"    protected virtual Task SettingsUpdatedAsync(");
+        sb.AppendLine("    protected virtual Task SettingsUpdatedAsync(");
         sb.AppendLine($"        {settingsTypeGlobalName} settings,");
         sb.AppendLine("        CancellationToken cancellationToken)");
         sb.AppendLine("    {");
@@ -254,7 +252,7 @@ public sealed class SettingsLifecycleGenerator : IIncrementalGenerator
         return sb.ToString();
     }
 
-    private sealed class ComponentInfo(
+    private  class ComponentInfo(
         ClassDeclarationSyntax syntax,
         INamedTypeSymbol symbol,
         string name,

@@ -1,6 +1,8 @@
-namespace ComposableSettings;
+using ComposableSettings.Abstractions;
 
-public sealed class SettingsNodeContext : ISettingsNodeContext
+namespace ComposableSettings.Runtime;
+
+public  class SettingsNodeContext : ISettingsNodeContext
 {
     public SettingsNodeContext(
         SettingsNodePath path,

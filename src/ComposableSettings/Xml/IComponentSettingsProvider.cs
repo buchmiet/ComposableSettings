@@ -1,3 +1,5 @@
+using ComposableSettings.Runtime;
+
 namespace ComposableSettings.Xml;
 
 public interface IComponentSettingsProvider

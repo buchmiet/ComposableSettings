@@ -1,17 +1,18 @@
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
+using ComposableSettings.Generator.Helpers;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
-using ComposableSettings.Generator.Helpers;
 
 namespace ComposableSettings.Generator.SourceGenerators;
 
 [Generator]
-public sealed class SettingsChildrenGenerator : IIncrementalGenerator
+public  class SettingsChildrenGenerator : IIncrementalGenerator
 {
     private const string GeneratedMethodName = "InitializeGeneratedSettingsChildren";
 
@@ -70,12 +71,10 @@ public sealed class SettingsChildrenGenerator : IIncrementalGenerator
         {
             if (candidate is null) continue;
             if (!SettingsNameHelper.IsValidPathSegment(candidate.Name))
-            {
                 context.ReportDiagnostic(Diagnostic.Create(
                     Diagnostics.InvalidComponentName,
                     GetSettingsComponentNameLocation(candidate.Syntax),
                     candidate.Name ?? "<null>"));
-            }
         }
     }
 
@@ -126,9 +125,8 @@ public sealed class SettingsChildrenGenerator : IIncrementalGenerator
             }
 
             foreach (var child in children)
-            {
-                if (child.HasError) hasError = true;
-            }
+                if (child.HasError)
+                    hasError = true;
 
             foreach (var duplicate in children
                          .Where(child => child.NodeName is not null)
@@ -218,7 +216,6 @@ public sealed class SettingsChildrenGenerator : IIncrementalGenerator
         source.AppendLine("    {");
 
         foreach (var child in children)
-        {
             if (child.ExplicitName is null)
             {
                 source.AppendLine($"        {child.PropertyName} = factory.CreateChild<{child.TypeName}>(");
@@ -230,7 +227,6 @@ public sealed class SettingsChildrenGenerator : IIncrementalGenerator
                 source.AppendLine("            parentPath,");
                 source.AppendLine($"            \"{EscapeStringLiteral(child.ExplicitName)}\");");
             }
-        }
 
         source.AppendLine("    }");
         source.AppendLine("}");
@@ -255,53 +251,54 @@ public sealed class SettingsChildrenGenerator : IIncrementalGenerator
         if (method.Parameters.Length != 2) return false;
 
         return IsType(method.Parameters[0].Type, "ComposableSettings.ISettingsNodeFactory")
-            && IsType(method.Parameters[1].Type, "ComposableSettings.SettingsNodePath");
+               && IsType(method.Parameters[1].Type, "ComposableSettings.SettingsNodePath");
     }
 
     private static bool IsType(ITypeSymbol type, string metadataName)
     {
         var display = type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
         return display == $"global::{metadataName}"
-            || display == metadataName
-            || display.EndsWith($".{metadataName}", System.StringComparison.Ordinal);
+               || display == metadataName
+               || display.EndsWith($".{metadataName}", StringComparison.Ordinal);
     }
 
     private static Location GetSettingsChildNameLocation(PropertyDeclarationSyntax property)
     {
         return property.AttributeLists
-            .SelectMany(list => list.Attributes)
-            .Where(a => a.Name.ToString().EndsWith("SettingsChild", System.StringComparison.Ordinal)
-                || a.Name.ToString().EndsWith("SettingsChildAttribute", System.StringComparison.Ordinal))
-            .Select(a => a.ArgumentList?.Arguments.FirstOrDefault()?.GetLocation())
-            .FirstOrDefault(location => location is not null)
-            ?? property.Identifier.GetLocation();
+                   .SelectMany(list => list.Attributes)
+                   .Where(a => a.Name.ToString().EndsWith("SettingsChild", StringComparison.Ordinal)
+                               || a.Name.ToString().EndsWith("SettingsChildAttribute", StringComparison.Ordinal))
+                   .Select(a => a.ArgumentList?.Arguments.FirstOrDefault()?.GetLocation())
+                   .FirstOrDefault(location => location is not null)
+               ?? property.Identifier.GetLocation();
     }
 
     private static Location GetSettingsComponentNameLocation(ClassDeclarationSyntax type)
     {
         return type.AttributeLists
-            .SelectMany(list => list.Attributes)
-            .Where(a => a.Name.ToString().EndsWith("SettingsComponent", System.StringComparison.Ordinal)
-                || a.Name.ToString().EndsWith("SettingsComponentAttribute", System.StringComparison.Ordinal))
-            .Select(a => a.ArgumentList?.Arguments.FirstOrDefault()?.GetLocation())
-            .FirstOrDefault(location => location is not null)
-            ?? type.Identifier.GetLocation();
+                   .SelectMany(list => list.Attributes)
+                   .Where(a => a.Name.ToString().EndsWith("SettingsComponent", StringComparison.Ordinal)
+                               || a.Name.ToString().EndsWith("SettingsComponentAttribute",
+                                   StringComparison.Ordinal))
+                   .Select(a => a.ArgumentList?.Arguments.FirstOrDefault()?.GetLocation())
+                   .FirstOrDefault(location => location is not null)
+               ?? type.Identifier.GetLocation();
     }
 
-    private sealed class ChildPropertyCandidate(PropertyDeclarationSyntax syntax, IPropertySymbol property)
+    private  class ChildPropertyCandidate(PropertyDeclarationSyntax syntax, IPropertySymbol property)
     {
         public PropertyDeclarationSyntax Syntax { get; } = syntax;
         public IPropertySymbol Property { get; } = property;
     }
 
-    private sealed class ComponentClassCandidate(ClassDeclarationSyntax syntax, INamedTypeSymbol symbol, string? name)
+    private  class ComponentClassCandidate(ClassDeclarationSyntax syntax, INamedTypeSymbol symbol, string? name)
     {
         public ClassDeclarationSyntax Syntax { get; } = syntax;
         public INamedTypeSymbol Symbol { get; } = symbol;
         public string? Name { get; } = name;
     }
 
-    private sealed class ChildModel(
+    private  class ChildModel(
         string propertyName,
         string typeName,
         string? explicitName,

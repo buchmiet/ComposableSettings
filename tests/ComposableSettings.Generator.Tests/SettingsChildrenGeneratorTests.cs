@@ -3,26 +3,26 @@ using Xunit.Abstractions;
 
 namespace ComposableSettings.Generator.Tests;
 
-public sealed class SettingsChildrenGeneratorTests(ITestOutputHelper output) : GeneratorBaseClass(output)
+public  class SettingsChildrenGeneratorTests(ITestOutputHelper output) : GeneratorBaseClass(output)
 {
     [Fact]
     public void Generates_child_initialization_for_default_child_name()
     {
         var (_, generatedSources) = CompileAndRunGenerator(BaseRuntimeSource, """
-            using ComposableSettings;
+                                                                              using ComposableSettings;
 
-            namespace TestNs;
+                                                                              namespace TestNs;
 
-            [SettingsComponent("cX")]
-            public sealed class ComponentXViewModel { }
+                                                                              [SettingsComponent("cX")]
+                                                                              public  class ComponentXViewModel { }
 
-            [SettingsComponent("component-y")]
-            public sealed partial class ComponentYViewModel
-            {
-                [SettingsChild]
-                public ComponentXViewModel X { get; private set; } = null!;
-            }
-            """);
+                                                                              [SettingsComponent("component-y")]
+                                                                              public  partial class ComponentYViewModel
+                                                                              {
+                                                                                  [SettingsChild]
+                                                                                  public ComponentXViewModel X { get; private set; } = null!;
+                                                                              }
+                                                                              """);
 
         var generated = Assert.Single(generatedSources.Values);
         Assert.Contains("InitializeGeneratedSettingsChildren", generated);
@@ -34,23 +34,23 @@ public sealed class SettingsChildrenGeneratorTests(ITestOutputHelper output) : G
     public void Generates_child_initialization_for_explicit_child_names()
     {
         var (_, generatedSources) = CompileAndRunGenerator(BaseRuntimeSource, """
-            using ComposableSettings;
+                                                                              using ComposableSettings;
 
-            namespace TestNs;
+                                                                              namespace TestNs;
 
-            [SettingsComponent("cX")]
-            public sealed class ComponentXViewModel { }
+                                                                              [SettingsComponent("cX")]
+                                                                              public  class ComponentXViewModel { }
 
-            [SettingsComponent("component-with-two-x")]
-            public sealed partial class ComponentWithTwoXViewModel
-            {
-                [SettingsChild("primary-x")]
-                public ComponentXViewModel PrimaryX { get; private set; } = null!;
+                                                                              [SettingsComponent("component-with-two-x")]
+                                                                              public  partial class ComponentWithTwoXViewModel
+                                                                              {
+                                                                                  [SettingsChild("primary-x")]
+                                                                                  public ComponentXViewModel PrimaryX { get; private set; } = null!;
 
-                [SettingsChild("secondary-x")]
-                public ComponentXViewModel SecondaryX { get; private set; } = null!;
-            }
-            """);
+                                                                                  [SettingsChild("secondary-x")]
+                                                                                  public ComponentXViewModel SecondaryX { get; private set; } = null!;
+                                                                              }
+                                                                              """);
 
         var generated = Assert.Single(generatedSources.Values);
         Assert.Contains("PrimaryX = factory.CreateChild<global::TestNs.ComponentXViewModel>(", generated);
@@ -63,23 +63,23 @@ public sealed class SettingsChildrenGeneratorTests(ITestOutputHelper output) : G
     public void Reports_error_for_duplicate_default_child_names()
     {
         var (diagnostics, _) = CompileAndRunGenerator(BaseRuntimeSource, """
-            using ComposableSettings;
+                                                                         using ComposableSettings;
 
-            namespace TestNs;
+                                                                         namespace TestNs;
 
-            [SettingsComponent("cX")]
-            public sealed class ComponentXViewModel { }
+                                                                         [SettingsComponent("cX")]
+                                                                         public  class ComponentXViewModel { }
 
-            [SettingsComponent("bad-parent")]
-            public sealed partial class BadParent
-            {
-                [SettingsChild]
-                public ComponentXViewModel First { get; private set; } = null!;
+                                                                         [SettingsComponent("bad-parent")]
+                                                                         public  partial class BadParent
+                                                                         {
+                                                                             [SettingsChild]
+                                                                             public ComponentXViewModel First { get; private set; } = null!;
 
-                [SettingsChild]
-                public ComponentXViewModel Second { get; private set; } = null!;
-            }
-            """);
+                                                                             [SettingsChild]
+                                                                             public ComponentXViewModel Second { get; private set; } = null!;
+                                                                         }
+                                                                         """);
 
         var diagnostic = Assert.Single(diagnostics.Where(d => d.Id == "CSP003"));
         Assert.Contains("cX", diagnostic.GetMessage());
@@ -94,17 +94,17 @@ public sealed class SettingsChildrenGeneratorTests(ITestOutputHelper output) : G
             namespace TestNs;
 
             [SettingsComponent("cX")]
-            public sealed class ComponentXViewModel { }
+            public  class ComponentXViewModel { }
 
             [SettingsComponent("component-y")]
-            public sealed partial class ComponentYViewModel
+            public  partial class ComponentYViewModel
             {
                 [SettingsChild]
                 public ComponentXViewModel X { get; private set; } = null!;
             }
 
             [SettingsComponent("component-z")]
-            public sealed partial class ComponentZViewModel
+            public  partial class ComponentZViewModel
             {
                 [SettingsChild]
                 public ComponentXViewModel X { get; private set; } = null!;
@@ -119,20 +119,20 @@ public sealed class SettingsChildrenGeneratorTests(ITestOutputHelper output) : G
     public void Reports_error_when_parent_class_is_not_partial()
     {
         var (diagnostics, _) = CompileAndRunGenerator(BaseRuntimeSource, """
-            using ComposableSettings;
+                                                                         using ComposableSettings;
 
-            namespace TestNs;
+                                                                         namespace TestNs;
 
-            [SettingsComponent("cX")]
-            public sealed class ComponentXViewModel { }
+                                                                         [SettingsComponent("cX")]
+                                                                         public  class ComponentXViewModel { }
 
-            [SettingsComponent("bad-parent")]
-            public sealed class BadParent
-            {
-                [SettingsChild]
-                public ComponentXViewModel X { get; private set; } = null!;
-            }
-            """);
+                                                                         [SettingsComponent("bad-parent")]
+                                                                         public  class BadParent
+                                                                         {
+                                                                             [SettingsChild]
+                                                                             public ComponentXViewModel X { get; private set; } = null!;
+                                                                         }
+                                                                         """);
 
         var diagnostic = Assert.Single(diagnostics.Where(d => d.Id == "CSP001"));
         Assert.Equal(DiagnosticSeverity.Error, diagnostic.Severity);
@@ -147,12 +147,12 @@ public sealed class SettingsChildrenGeneratorTests(ITestOutputHelper output) : G
             namespace TestNs;
 
             [SettingsComponent("cX")]
-            public sealed class ComponentXViewModel { }
+            public  class ComponentXViewModel { }
 
             public static partial class Container
             {
                 [SettingsComponent("inner-parent")]
-                public sealed partial class InnerParent
+                public  partial class InnerParent
                 {
                     [SettingsChild]
                     public ComponentXViewModel X { get; private set; } = null!;
@@ -173,10 +173,10 @@ public sealed class SettingsChildrenGeneratorTests(ITestOutputHelper output) : G
             namespace TestNs;
 
             [SettingsComponent("cX")]
-            public sealed class ComponentXViewModel { }
+            public  class ComponentXViewModel { }
 
             [SettingsComponent("parent")]
-            public sealed partial class ParentViewModel
+            public  partial class ParentViewModel
             {
                 private void InitializeGeneratedSettingsChildren(
                     ISettingsNodeFactory factory,

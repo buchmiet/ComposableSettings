@@ -1,6 +1,8 @@
-namespace ComposableSettings;
+using ComposableSettings.Abstractions;
 
-public sealed class ComponentSettings<TSettings>(
+namespace ComposableSettings.Runtime;
+
+public  class ComponentSettings<TSettings>(
     ISettingsNodeContext context,
     IComponentSettingsStore store) : IComponentSettings<TSettings>
     where TSettings : class, new()

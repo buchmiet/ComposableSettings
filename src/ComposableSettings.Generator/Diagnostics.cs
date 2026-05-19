@@ -10,7 +10,7 @@ internal static class Diagnostics
         "Class '{0}' contains settings children and must be partial.",
         "ComposableSettings.Generator",
         DiagnosticSeverity.Error,
-        isEnabledByDefault: true);
+        true);
 
     public static readonly DiagnosticDescriptor ChildPropertyMustBeAssignable = new(
         "CSP002",
@@ -18,7 +18,7 @@ internal static class Diagnostics
         "Settings child property '{0}' must be assignable by generated code.",
         "ComposableSettings.Generator",
         DiagnosticSeverity.Error,
-        isEnabledByDefault: true);
+        true);
 
     public static readonly DiagnosticDescriptor DuplicateChildNodeName = new(
         "CSP003",
@@ -26,7 +26,7 @@ internal static class Diagnostics
         "Duplicate settings child node '{0}' in '{1}'. Use explicit SettingsChild names.",
         "ComposableSettings.Generator",
         DiagnosticSeverity.Error,
-        isEnabledByDefault: true);
+        true);
 
     public static readonly DiagnosticDescriptor InvalidChildName = new(
         "CSP004",
@@ -34,7 +34,7 @@ internal static class Diagnostics
         "Settings child name '{0}' is not a valid path segment.",
         "ComposableSettings.Generator",
         DiagnosticSeverity.Error,
-        isEnabledByDefault: true);
+        true);
 
     public static readonly DiagnosticDescriptor InvalidComponentName = new(
         "CSP005",
@@ -42,7 +42,7 @@ internal static class Diagnostics
         "Settings component name '{0}' is not a valid path segment.",
         "ComposableSettings.Generator",
         DiagnosticSeverity.Error,
-        isEnabledByDefault: true);
+        true);
 
     public static readonly DiagnosticDescriptor NestedParentClassNotSupported = new(
         "CSP006",
@@ -50,7 +50,7 @@ internal static class Diagnostics
         "Nested settings parent class '{0}' is not supported by this generator.",
         "ComposableSettings.Generator",
         DiagnosticSeverity.Error,
-        isEnabledByDefault: true);
+        true);
 
     public static readonly DiagnosticDescriptor GeneratedInitializationMethodAlreadyExists = new(
         "CSP007",
@@ -58,7 +58,7 @@ internal static class Diagnostics
         "Class '{0}' already contains a method named 'InitializeGeneratedSettingsChildren' with the generated signature.",
         "ComposableSettings.Generator",
         DiagnosticSeverity.Error,
-        isEnabledByDefault: true);
+        true);
 
     public static readonly DiagnosticDescriptor InvalidRootName = new(
         "CSP008",
@@ -66,7 +66,7 @@ internal static class Diagnostics
         "Settings root name '{0}' is not a valid path segment.",
         "ComposableSettings.Generator",
         DiagnosticSeverity.Error,
-        isEnabledByDefault: true);
+        true);
 
     public static readonly DiagnosticDescriptor DuplicateSettingsRegistrationPath = new(
         "CSP009",
@@ -74,7 +74,7 @@ internal static class Diagnostics
         "Duplicate settings registration path '{0}' for type '{1}'. Ensure each settings path is unique.",
         "ComposableSettings.Generator",
         DiagnosticSeverity.Error,
-        isEnabledByDefault: true);
+        true);
 
     public static readonly DiagnosticDescriptor ComponentNotReachableFromRoot = new(
         "CSP010",
@@ -82,7 +82,7 @@ internal static class Diagnostics
         "Settings component '{0}' with settings type '{1}' is not reachable from any [SettingsRoot] tree.",
         "ComposableSettings.Generator",
         DiagnosticSeverity.Warning,
-        isEnabledByDefault: true);
+        true);
 
     public static readonly DiagnosticDescriptor LifecycleClassMustBePartial = new(
         "CSP011",
@@ -90,7 +90,7 @@ internal static class Diagnostics
         "Class '{0}' has GenerateLifecycle=true but is not partial.",
         "ComposableSettings.Generator",
         DiagnosticSeverity.Error,
-        isEnabledByDefault: true);
+        true);
 
     public static readonly DiagnosticDescriptor LifecycleSettingsTypeMissing = new(
         "CSP012",
@@ -98,7 +98,7 @@ internal static class Diagnostics
         "Class '{0}' has GenerateLifecycle=true but no SettingsType is declared on [SettingsComponent].",
         "ComposableSettings.Generator",
         DiagnosticSeverity.Error,
-        isEnabledByDefault: true);
+        true);
 
     public static readonly DiagnosticDescriptor LifecycleSettingsTypeNoParameterlessCtor = new(
         "CSP013",
@@ -106,7 +106,7 @@ internal static class Diagnostics
         "Settings type '{0}' used by component '{1}' has GenerateLifecycle=true but lacks a public parameterless constructor.",
         "ComposableSettings.Generator",
         DiagnosticSeverity.Error,
-        isEnabledByDefault: true);
+        true);
 
     public static readonly DiagnosticDescriptor LifecycleMemberConflict = new(
         "CSP014",
@@ -114,7 +114,7 @@ internal static class Diagnostics
         "Component '{0}' with GenerateLifecycle=true already defines member '{1}'. Remove the member or disable lifecycle generation.",
         "ComposableSettings.Generator",
         DiagnosticSeverity.Error,
-        isEnabledByDefault: true);
+        true);
 
     public static readonly DiagnosticDescriptor LifecycleUserDefinedConstructorNotSupported = new(
         "CSP015",
@@ -122,5 +122,5 @@ internal static class Diagnostics
         "Class '{0}' has GenerateLifecycle=true and declares a constructor. Remove the constructor, disable lifecycle generation, or wait for constructor integration support. Source generation was skipped.",
         "ComposableSettings.Generator",
         DiagnosticSeverity.Error,
-        isEnabledByDefault: true);
+        true);
 }

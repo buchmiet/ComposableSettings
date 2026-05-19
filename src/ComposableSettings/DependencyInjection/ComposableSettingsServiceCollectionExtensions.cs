@@ -1,6 +1,9 @@
+using ComposableSettings.Abstractions;
+using ComposableSettings.Runtime;
+using ComposableSettings.Stores;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace ComposableSettings;
+namespace ComposableSettings.DependencyInjection;
 
 public static class ComposableSettingsServiceCollectionExtensions
 {

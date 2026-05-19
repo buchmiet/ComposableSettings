@@ -1,7 +1,7 @@
-namespace ComposableSettings;
+namespace ComposableSettings.Attributes;
 
 [AttributeUsage(AttributeTargets.Property)]
-public sealed class SettingsChildAttribute(string? name = null) : Attribute
+public  class SettingsChildAttribute(string? name = null) : Attribute
 {
     public string? Name { get; } = name;
 }

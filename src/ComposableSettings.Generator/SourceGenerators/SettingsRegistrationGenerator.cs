@@ -2,16 +2,16 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
+using ComposableSettings.Generator.Helpers;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
-using ComposableSettings.Generator.Helpers;
 
 namespace ComposableSettings.Generator.SourceGenerators;
 
 [Generator]
-public sealed class SettingsRegistrationGenerator : IIncrementalGenerator
+public  class SettingsRegistrationGenerator : IIncrementalGenerator
 {
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
@@ -47,9 +47,7 @@ public sealed class SettingsRegistrationGenerator : IIncrementalGenerator
         var attribute = classSymbol.GetAttribute(GeneratorConstants.SettingsRootAttributeFullName);
         if (attribute?.ConstructorArguments.Length > 0
             && attribute.ConstructorArguments[0].Value is string rootName)
-        {
             return new RootInfo(classSymbol.ToGlobalTypeName(), rootName);
-        }
 
         return null;
     }
@@ -71,9 +69,7 @@ public sealed class SettingsRegistrationGenerator : IIncrementalGenerator
         string? settingsTypeName = null;
         if (attribute.ConstructorArguments.Length > 1
             && attribute.ConstructorArguments[1].Value is INamedTypeSymbol settingsType)
-        {
             settingsTypeName = settingsType.ToGlobalTypeName();
-        }
 
         return new ComponentInfo(classSymbol.ToGlobalTypeName(), name ?? string.Empty, settingsTypeName);
     }
@@ -168,7 +164,7 @@ public sealed class SettingsRegistrationGenerator : IIncrementalGenerator
         source.AppendLine();
         source.AppendLine("namespace ComposableSettings.Generated;");
         source.AppendLine();
-        source.AppendLine("public sealed class GeneratedComponentSettingsInitializer : IComponentSettingsInitializer");
+        source.AppendLine("public  class GeneratedComponentSettingsInitializer : IComponentSettingsInitializer");
         source.AppendLine("{");
         source.AppendLine("    private readonly IComponentSettingsStore _store;");
         source.AppendLine();
@@ -181,9 +177,7 @@ public sealed class SettingsRegistrationGenerator : IIncrementalGenerator
         source.AppendLine("    {");
 
         foreach (var reg in registrations)
-        {
             source.AppendLine($"        _store.Register<{reg.SettingsTypeName}>({GeneratePathExpression(reg.Path)});");
-        }
 
         source.AppendLine();
         source.AppendLine("        _store.CompleteRegistration(resetToDefaults);");
@@ -204,9 +198,7 @@ public sealed class SettingsRegistrationGenerator : IIncrementalGenerator
     {
         if (componentDict.TryGetValue(className, out var component)
             && component.SettingsTypeName is not null)
-        {
             registrations.Add(new RegistrationEntry(pathSoFar, component.SettingsTypeName));
-        }
 
         if (!childrenByParent.TryGetValue(className, out var children))
             return;
@@ -222,14 +214,15 @@ public sealed class SettingsRegistrationGenerator : IIncrementalGenerator
     {
         var segments = path.Split('/');
         if (segments.Length == 0) return "\"\"";
-        if (segments.Length == 1) return $"ComposableSettings.SettingsNodePath.Root(\"{EscapeStringLiteral(segments[0])}\")";
+        if (segments.Length == 1)
+            return $"ComposableSettings.SettingsNodePath.Root(\"{EscapeStringLiteral(segments[0])}\")";
 
         var sb = new StringBuilder();
         sb.Append("ComposableSettings.SettingsNodePath.Root(\"");
         sb.Append(EscapeStringLiteral(segments[0]));
         sb.Append("\")");
 
-        for (int i = 1; i < segments.Length; i++)
+        for (var i = 1; i < segments.Length; i++)
         {
             sb.Append(".Child(\"");
             sb.Append(EscapeStringLiteral(segments[i]));
@@ -244,27 +237,27 @@ public sealed class SettingsRegistrationGenerator : IIncrementalGenerator
         return value.Replace("\\", "\\\\").Replace("\"", "\\\"");
     }
 
-    private sealed class RootInfo(string className, string rootName)
+    private  class RootInfo(string className, string rootName)
     {
         public string ClassName { get; } = className;
         public string RootName { get; } = rootName;
     }
 
-    private sealed class ComponentInfo(string className, string name, string? settingsTypeName)
+    private  class ComponentInfo(string className, string name, string? settingsTypeName)
     {
         public string ClassName { get; } = className;
         public string Name { get; } = name;
         public string? SettingsTypeName { get; } = settingsTypeName;
     }
 
-    private sealed class ChildInfo(string parentClassName, string childClassName, string nodeName)
+    private  class ChildInfo(string parentClassName, string childClassName, string nodeName)
     {
         public string ParentClassName { get; } = parentClassName;
         public string ChildClassName { get; } = childClassName;
         public string NodeName { get; } = nodeName;
     }
 
-    private sealed class RegistrationEntry(string path, string settingsTypeName)
+    private  class RegistrationEntry(string path, string settingsTypeName)
     {
         public string Path { get; } = path;
         public string SettingsTypeName { get; } = settingsTypeName;

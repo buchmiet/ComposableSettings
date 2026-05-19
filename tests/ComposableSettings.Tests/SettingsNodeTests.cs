@@ -1,8 +1,12 @@
+using ComposableSettings.Abstractions;
+using ComposableSettings.Attributes;
+using ComposableSettings.DependencyInjection;
+using ComposableSettings.Runtime;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace ComposableSettings.Tests;
 
-public sealed class SettingsNodeTests
+public  class SettingsNodeTests
 {
     [Fact]
     public void Reusable_component_under_different_parents_gets_different_paths()
@@ -41,8 +45,8 @@ public sealed class SettingsNodeTests
         var factory = provider.GetRequiredService<ISettingsNodeFactory>();
         _ = factory.CreateChild<LeafViewModel>(SettingsNodePath.Root("gui"));
 
-        var exception = Assert.Throws<InvalidOperationException>(
-            () => provider.GetRequiredService<ISettingsNodeContext>());
+        var exception =
+            Assert.Throws<InvalidOperationException>(() => provider.GetRequiredService<ISettingsNodeContext>());
 
         Assert.Contains("No settings node context is active", exception.Message);
     }
@@ -52,8 +56,7 @@ public sealed class SettingsNodeTests
     {
         using var provider = CreateProvider();
 
-        var exception = Assert.Throws<InvalidOperationException>(
-            () => provider.GetRequiredService<ParentViewModel>());
+        var exception = Assert.Throws<InvalidOperationException>(() => provider.GetRequiredService<ParentViewModel>());
 
         Assert.Contains("No settings node context is active", exception.Message);
     }
@@ -123,11 +126,11 @@ public sealed class SettingsNodeTests
             .AddInMemoryComposableSettingsStore()
             .AddTransient<LeafViewModel>()
             .AddTransient<ParentViewModel>()
-            .BuildServiceProvider(validateScopes: true);
+            .BuildServiceProvider(true);
     }
 
     [SettingsComponent("cX")]
-    public sealed class LeafViewModel
+    public  class LeafViewModel
     {
         private readonly IComponentSettings<TestSettings> _settings;
 
@@ -147,11 +150,14 @@ public sealed class SettingsNodeTests
             _settings.Save(value);
         }
 
-        public string? ReadText() => _settings.Value.Text;
+        public string? ReadText()
+        {
+            return _settings.Value.Text;
+        }
     }
 
     [SettingsComponent("parent")]
-    public sealed class ParentViewModel
+    public  class ParentViewModel
     {
         public ParentViewModel(ISettingsNodeContext context)
         {
@@ -161,17 +167,18 @@ public sealed class SettingsNodeTests
         public SettingsNodePath Path { get; }
     }
 
-    public sealed class TestSettings
+    public  class TestSettings
     {
         public string? Text { get; set; }
         public int Counter { get; set; }
     }
 
-    private sealed class OtherSettings
+    private  class OtherSettings
     {
         public string? Text { get; set; }
     }
 
-    private sealed class PlainChildViewModel;
-    private sealed class PlainChild;
+    private  class PlainChildViewModel;
+
+    private  class PlainChild;
 }

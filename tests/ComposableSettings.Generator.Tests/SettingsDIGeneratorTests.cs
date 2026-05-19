@@ -2,26 +2,26 @@ using Xunit.Abstractions;
 
 namespace ComposableSettings.Generator.Tests;
 
-public sealed class SettingsDIGeneratorTests(ITestOutputHelper output) : GeneratorBaseClass(output)
+public  class SettingsDIGeneratorTests(ITestOutputHelper output) : GeneratorBaseClass(output)
 {
     [Fact]
     public void Generates_di_registration_for_root_and_component_classes()
     {
         var (diagnostics, generatedSources) = CompileAndRunAllGenerators("""
-            using ComposableSettings;
+                                                                         using ComposableSettings;
 
-            namespace TestNs;
+                                                                         namespace TestNs;
 
-            [SettingsRoot("root")]
-            public sealed partial class RootViewModel
-            {
-                [SettingsChild("child")]
-                public ChildViewModel Child { get; private set; } = null!;
-            }
+                                                                         [SettingsRoot("root")]
+                                                                         public  partial class RootViewModel
+                                                                         {
+                                                                             [SettingsChild("child")]
+                                                                             public ChildViewModel Child { get; private set; } = null!;
+                                                                         }
 
-            [SettingsComponent("child")]
-            public sealed class ChildViewModel { }
-            """);
+                                                                         [SettingsComponent("child")]
+                                                                         public  class ChildViewModel { }
+                                                                         """);
 
         Assert.Empty(diagnostics);
 
@@ -35,15 +35,15 @@ public sealed class SettingsDIGeneratorTests(ITestOutputHelper output) : Generat
     public void Does_not_register_classes_without_settings_attributes()
     {
         var (diagnostics, generatedSources) = CompileAndRunAllGenerators("""
-            using ComposableSettings;
+                                                                         using ComposableSettings;
 
-            namespace TestNs;
+                                                                         namespace TestNs;
 
-            public class PlainClass { }
+                                                                         public class PlainClass { }
 
-            [SettingsRoot("root")]
-            public sealed partial class RootViewModel { }
-            """);
+                                                                         [SettingsRoot("root")]
+                                                                         public  partial class RootViewModel { }
+                                                                         """);
 
         Assert.Empty(diagnostics);
 
@@ -57,22 +57,22 @@ public sealed class SettingsDIGeneratorTests(ITestOutputHelper output) : Generat
     public void Generates_transient_registration_for_all_component_types()
     {
         var (diagnostics, generatedSources) = CompileAndRunAllGenerators("""
-            using ComposableSettings;
+                                                                         using ComposableSettings;
 
-            namespace TestNs;
+                                                                         namespace TestNs;
 
-            [SettingsRoot("gui")]
-            public sealed partial class MainViewModel { }
+                                                                         [SettingsRoot("gui")]
+                                                                         public  partial class MainViewModel { }
 
-            [SettingsComponent("appearance")]
-            public sealed partial class AppearanceViewModel { }
+                                                                         [SettingsComponent("appearance")]
+                                                                         public  partial class AppearanceViewModel { }
 
-            [SettingsComponent("clock")]
-            public sealed class ClockViewModel { }
+                                                                         [SettingsComponent("clock")]
+                                                                         public  class ClockViewModel { }
 
-            [SettingsComponent("logRender")]
-            public sealed class LogRenderViewModel { }
-            """);
+                                                                         [SettingsComponent("logRender")]
+                                                                         public  class LogRenderViewModel { }
+                                                                         """);
 
         Assert.Empty(diagnostics);
 

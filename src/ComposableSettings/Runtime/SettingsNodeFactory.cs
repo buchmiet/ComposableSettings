@@ -1,8 +1,9 @@
+using ComposableSettings.Abstractions;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace ComposableSettings;
+namespace ComposableSettings.Runtime;
 
-internal sealed class SettingsNodeFactory(
+internal  class SettingsNodeFactory(
     IServiceProvider serviceProvider,
     ISettingsComponentNameResolver componentNameResolver,
     SettingsNodeContextAccessor contextAccessor) : ISettingsNodeFactory

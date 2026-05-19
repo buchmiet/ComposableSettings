@@ -1,8 +1,10 @@
 using System.Reflection;
+using ComposableSettings.Abstractions;
+using ComposableSettings.Attributes;
 
-namespace ComposableSettings;
+namespace ComposableSettings.Runtime;
 
-public sealed class SettingsComponentNameResolver : ISettingsComponentNameResolver
+public  class SettingsComponentNameResolver : ISettingsComponentNameResolver
 {
     private const string ViewModelSuffix = "ViewModel";
 

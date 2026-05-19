@@ -4,9 +4,11 @@ Component-based settings composition with source-generated child wiring, registr
 
 ## Problem
 
-Traditional settings management requires a central registry that knows about every settings type. Adding one settings type requires touching many files across the abstraction, engine, and view-model layers.
+Traditional settings management requires a central registry that knows about every settings type. Adding one settings
+type requires touching many files across the abstraction, engine, and view-model layers.
 
-**ComposableSettings** inverts this dependency: each component declares its own settings model. A source generator walks the component tree and emits wiring, registration, and DI code automatically.
+**ComposableSettings** inverts this dependency: each component declares its own settings model. A source generator walks
+the component tree and emits wiring, registration, and DI code automatically.
 
 ## Installation
 
@@ -44,7 +46,7 @@ provider.GetRequiredService<IComponentSettingsInitializer>().Initialize(resetToD
 
 ```csharp
 [SettingsRoot("gui")]
-public sealed partial class RootViewModel
+public  partial class RootViewModel
 {
     public RootViewModel(ISettingsNodeFactory factory)
     {
@@ -56,7 +58,7 @@ public sealed partial class RootViewModel
 }
 
 [SettingsComponent("appearance")]
-public sealed partial class AppearanceViewModel
+public  partial class AppearanceViewModel
 {
     public AppearanceViewModel(ISettingsNodeContext context, ISettingsNodeFactory factory)
     {
@@ -70,7 +72,7 @@ public sealed partial class AppearanceViewModel
 // Hand-written component: it declares its own constructor, so it opts OUT
 // of the generated lifecycle (see "Generated Settings Lifecycle" below).
 [SettingsComponent("clock", typeof(ClockSettings), GenerateLifecycle = false)]
-public sealed class ClockViewModel
+public  class ClockViewModel
 {
     private readonly IComponentSettings<ClockSettings> _settings;
 
@@ -85,17 +87,18 @@ public sealed class ClockViewModel
 
 ### Paths
 
-Component paths are built as `gui/appearance/clock` using `SettingsNodePath.Root("gui").Child("appearance").Child("clock")`.
+Component paths are built as `gui/appearance/clock` using
+`SettingsNodePath.Root("gui").Child("appearance").Child("clock")`.
 
 Valid path segment characters: `[A-Za-z0-9_.-]+`
 
 ### Source Generators (3)
 
-| Generator | What it emits |
-|-----------|---------------|
-| `SettingsChildrenGenerator` | `InitializeGeneratedSettingsChildren(factory, path)` for `partial` parent classes |
+| Generator                       | What it emits                                                                              |
+|---------------------------------|--------------------------------------------------------------------------------------------|
+| `SettingsChildrenGenerator`     | `InitializeGeneratedSettingsChildren(factory, path)` for `partial` parent classes          |
 | `SettingsRegistrationGenerator` | `GeneratedComponentSettingsInitializer` that calls `store.Register<T>(path)` for all leafs |
-| `SettingsDIGenerator` | `AddGeneratedSettingsComponents(this IServiceCollection)` extension |
+| `SettingsDIGenerator`           | `AddGeneratedSettingsComponents(this IServiceCollection)` extension                        |
 
 ### Store
 
@@ -135,7 +138,7 @@ public partial class SleepModeComponent
 
 // Explicit opt-out:
 [SettingsComponent("sleepMode", typeof(SleepModeSettings), GenerateLifecycle = false)]
-public sealed class HandWrittenSleepModeComponent { /* your own code */ }
+public  class HandWrittenSleepModeComponent { /* your own code */ }
 ```
 
 The source generator emits:
@@ -174,13 +177,16 @@ public partial class SleepModeComponent
 ```
 
 Key behaviors:
+
 - **Reset** creates a fresh settings instance, then notifies the component
 - **Save** is explicit — it only calls `_componentSettings.SaveAsync()`, never auto-saves
 - GUI code decides when to call `SaveSettingsAsync()` (e.g., after a save button, debounce, or screen close)
 - Override `SettingsUpdatedAsync()` for UI refresh/recalculation on reset
 - The component must be `partial` and the settings type must have a public parameterless constructor
 - A constructor accepting `IComponentSettings<TSettings>` is generated
-- **Lifecycle generation supports only components without user-defined constructors.** If the component declares its own constructor, the generator reports diagnostic CSP015 and skips generation. Constructor merging/injection augmentation is intentionally deferred.
+- **Lifecycle generation supports only components without user-defined constructors.** If the component declares its own
+  constructor, the generator reports diagnostic CSP015 and skips generation. Constructor merging/injection augmentation
+  is intentionally deferred.
 
 ## Limitations
 

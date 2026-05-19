@@ -1,4 +1,4 @@
-namespace ComposableSettings;
+namespace ComposableSettings.Abstractions;
 
 public interface IComponentSettingsInitializer
 {

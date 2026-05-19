@@ -1,7 +1,7 @@
-namespace ComposableSettings;
+namespace ComposableSettings.Attributes;
 
 [AttributeUsage(AttributeTargets.Class)]
-public sealed class SettingsRootAttribute(string name) : Attribute
+public  class SettingsRootAttribute(string name) : Attribute
 {
     public string Name { get; } = name;
 }

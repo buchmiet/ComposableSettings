@@ -1,41 +1,41 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-    <RootNamespace>ComposableSettings</RootNamespace>
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <RootNamespace>ComposableSettings</RootNamespace>
 
-    <!-- NuGet packaging -->
-    <PackageId>ComposableSettings</PackageId>
-    <Version>1.0.1</Version>
-    <Authors>Actuator Contributors</Authors>
-    <Description>Component-based settings composition with source-generated child wiring, registration, and DI.</Description>
-    <PackageTags>settings;composition;source-generator;roslyn;dotnet;component-settings;modular-settings</PackageTags>
-    <PackageReadmeFile>README.md</PackageReadmeFile>
-    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
-  </PropertyGroup>
+        <!-- NuGet packaging -->
+        <PackageId>ComposableSettings</PackageId>
+        <Version>1.0.1</Version>
+        <Authors>Actuator Contributors</Authors>
+        <Description>Component-based settings composition with source-generated child wiring, registration, and DI.</Description>
+        <PackageTags>settings;composition;source-generator;roslyn;dotnet;component-settings;modular-settings</PackageTags>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+        <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    </PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.7" />
-  </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.7"/>
+    </ItemGroup>
 
-  <!-- Local development: generator as analyzer -->
-  <ItemGroup>
-    <ProjectReference Include="..\ComposableSettings.Generator\ComposableSettings.Generator.csproj"
-                      OutputItemType="Analyzer"
-                      ReferenceOutputAssembly="false" />
-  </ItemGroup>
+    <!-- Local development: generator as analyzer -->
+    <ItemGroup>
+        <ProjectReference Include="..\ComposableSettings.Generator\ComposableSettings.Generator.csproj"
+                          OutputItemType="Analyzer"
+                          ReferenceOutputAssembly="false"/>
+    </ItemGroup>
 
-  <!-- Pack the generator DLLs into the NuGet package as analyzers (Strategy A) -->
-  <ItemGroup>
-    <None Include="..\ComposableSettings.Generator\bin\$(Configuration)\netstandard2.0\ComposableSettings.Generator.dll"
-          Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
-  </ItemGroup>
+    <!-- Pack the generator DLLs into the NuGet package as analyzers (Strategy A) -->
+    <ItemGroup>
+        <None Include="..\ComposableSettings.Generator\bin\$(Configuration)\netstandard2.0\ComposableSettings.Generator.dll"
+              Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false"/>
+    </ItemGroup>
 
-  <!-- Pack README -->
-  <ItemGroup>
-    <None Include="..\..\README.md" Pack="true" PackagePath="/" Visible="false" />
-  </ItemGroup>
+    <!-- Pack README -->
+    <ItemGroup>
+        <None Include="..\..\README.md" Pack="true" PackagePath="/" Visible="false"/>
+    </ItemGroup>
 
 </Project>

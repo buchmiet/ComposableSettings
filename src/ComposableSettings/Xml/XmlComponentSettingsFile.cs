@@ -4,6 +4,7 @@ using System.Reflection;
 using System.Xml;
 using System.Xml.Linq;
 using System.Xml.Serialization;
+using ComposableSettings.Runtime;
 
 namespace ComposableSettings.Xml;
 
@@ -21,8 +22,8 @@ public class XmlComponentSettingsFile : IComponentSettingsProvider
     }
 
     /// <summary>
-    /// Creates an instance from a fully-resolved file path instead of option-based resolution.
-    /// The directory is created if it does not exist.
+    ///     Creates an instance from a fully-resolved file path instead of option-based resolution.
+    ///     The directory is created if it does not exist.
     /// </summary>
     public XmlComponentSettingsFile(string filePath)
     {
@@ -47,10 +48,17 @@ public class XmlComponentSettingsFile : IComponentSettingsProvider
         return TryDeserialize<TSettings>(element, out var settings) ? settings : new TSettings();
     }
 
+    public void Set<TSettings>(SettingsNodePath path, TSettings value)
+        where TSettings : class, new()
+    {
+        Write(path, value);
+        Flush();
+    }
+
     /// <summary>
-    /// Tries to load and deserialize settings at <paramref name="path"/>.
-    /// Returns <c>false</c> (and a fresh default) if the element is missing or cannot be deserialized.
-    /// Does not touch the file on disk.
+    ///     Tries to load and deserialize settings at <paramref name="path" />.
+    ///     Returns <c>false</c> (and a fresh default) if the element is missing or cannot be deserialized.
+    ///     Does not touch the file on disk.
     /// </summary>
     public bool TryLoad<TSettings>(SettingsNodePath path, out TSettings settings)
         where TSettings : class, new()
@@ -58,18 +66,14 @@ public class XmlComponentSettingsFile : IComponentSettingsProvider
         ArgumentNullException.ThrowIfNull(path);
 
         var element = FindElement(path.Segments);
-        if (element is null)
-        {
-            settings = new TSettings();
-            return false;
-        }
-
-        return TryDeserialize(element, out settings);
+        if (element is not null) return TryDeserialize(element, out settings);
+        settings = new TSettings();
+        return false;
     }
 
     /// <summary>
-    /// Writes settings to the in-memory document without saving to disk.
-    /// Call <see cref="Flush"/> when all writes in a batch are done.
+    ///     Writes settings to the in-memory document without saving to disk.
+    ///     Call <see cref="Flush" /> when all writes in a batch are done.
     /// </summary>
     private void Write<TSettings>(SettingsNodePath path, TSettings value)
         where TSettings : class, new()
@@ -81,13 +85,9 @@ public class XmlComponentSettingsFile : IComponentSettingsProvider
     }
 
     /// <summary>Saves the in-memory document to disk.</summary>
-    private void Flush() => _document.Save(SettingsFilePath);
-
-    public void Set<TSettings>(SettingsNodePath path, TSettings value)
-        where TSettings : class, new()
+    private void Flush()
     {
-        Write(path, value);
-        Flush();
+        _document.Save(SettingsFilePath);
     }
 
     private static XDocument LoadOrCreateDocument(string filePath)
@@ -117,6 +117,7 @@ public class XmlComponentSettingsFile : IComponentSettingsProvider
             if (current is null)
                 return null;
         }
+
         return current;
     }
 
@@ -131,8 +132,10 @@ public class XmlComponentSettingsFile : IComponentSettingsProvider
                 next = new XElement(segment);
                 current.Add(next);
             }
+
             current = next;
         }
+
         return current;
     }
 
@@ -160,10 +163,10 @@ public class XmlComponentSettingsFile : IComponentSettingsProvider
 
         using var textWriter = new StringWriter(CultureInfo.InvariantCulture);
         using (var xmlWriter = XmlWriter.Create(textWriter, new XmlWriterSettings
-        {
-            OmitXmlDeclaration = true,
-            Indent = true,
-        }))
+               {
+                   OmitXmlDeclaration = true,
+                   Indent = true
+               }))
         {
             serializer.Serialize(xmlWriter, settings, namespaces);
         }
@@ -203,9 +206,7 @@ public class XmlComponentSettingsFile : IComponentSettingsProvider
             if (!property.CanWrite
                 || !property.PropertyType.IsGenericType
                 || property.PropertyType.GetGenericTypeDefinition() != typeof(List<>))
-            {
                 continue;
-            }
 
             var itemType = property.PropertyType.GetGenericArguments()[0];
             var arrayName = property.GetCustomAttribute<XmlArrayAttribute>()?.ElementName;
@@ -234,6 +235,8 @@ public class XmlComponentSettingsFile : IComponentSettingsProvider
         if (itemType == typeof(string))
             return element.Value;
 
-        return itemType.IsEnum ? Enum.Parse(itemType, element.Value) : Convert.ChangeType(element.Value, itemType, CultureInfo.InvariantCulture);
+        return itemType.IsEnum
+            ? Enum.Parse(itemType, element.Value)
+            : Convert.ChangeType(element.Value, itemType, CultureInfo.InvariantCulture);
     }
 }
