@@ -1,11 +1,8 @@
-using ComposableSettings.Runtime;
-
-namespace ComposableSettings.Xml;
+namespace ComposableSettings.Runtime;
 
 public interface IComponentSettingsProvider
 {
-    string SettingsFilePath { get; }
-
+    
     TSettings Get<TSettings>(SettingsNodePath path)
         where TSettings : class, new();
 

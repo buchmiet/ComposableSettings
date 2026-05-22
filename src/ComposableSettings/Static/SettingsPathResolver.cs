@@ -1,8 +1,10 @@
-namespace ComposableSettings.Xml;
+using ComposableSettings.Configuration;
 
-public static class ComponentSettingsPathResolver
+namespace ComposableSettings.Static;
+
+public static class SettingsPathResolver
 {
-    private static string ResolveDirectory(ComponentSettingsFileOptions options)
+    private static string ResolveDirectory(SettingsFileOptions options)
     {
         ArgumentNullException.ThrowIfNull(options);
 
@@ -22,14 +24,14 @@ public static class ComponentSettingsPathResolver
             : Path.Combine(baseDirectory, appFolderName, options.FolderName);
     }
 
-    private static string ResolveAppFolderName(ComponentSettingsFileOptions options, bool useSystemDirectory)
+    private static string ResolveAppFolderName(SettingsFileOptions options, bool useSystemDirectory)
     {
         return useSystemDirectory && OperatingSystem.IsLinux()
             ? options.AppName.ToLowerInvariant()
             : options.AppName;
     }
 
-    private static string ResolveSystemBaseDirectory(ComponentSettingsFileOptions options)
+    private static string ResolveSystemBaseDirectory(SettingsFileOptions options)
     {
         if (OperatingSystem.IsWindows())
             return Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
@@ -39,7 +41,7 @@ public static class ComponentSettingsPathResolver
             : Path.Combine(Path.DirectorySeparatorChar.ToString(), "etc");
     }
 
-    public static string ResolveFilePath(ComponentSettingsFileOptions options)
+    public static string ResolveFilePath(SettingsFileOptions options)
     {
         ArgumentNullException.ThrowIfNull(options);
         if (string.IsNullOrWhiteSpace(options.FileName))

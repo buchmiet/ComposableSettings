@@ -1,8 +1,7 @@
-namespace ComposableSettings.Xml;
+namespace ComposableSettings.Configuration;
 
-public abstract class ComponentSettingsFileOptions
+public class SettingsFileOptions:SettingsOptions
 {
-    public required string AppName { get; init; }
     public required string FileName { get; init; }
     public string? FolderName { get; init; }
 

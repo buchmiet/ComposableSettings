@@ -122,7 +122,7 @@ public  class SettingsNodeTests
     private static ServiceProvider CreateProvider()
     {
         return new ServiceCollection()
-            .AddComposableSettingsInfrastructure()
+            .AddComposableSettingsProviders()
             .AddInMemoryComposableSettingsStore()
             .AddTransient<LeafViewModel>()
             .AddTransient<ParentViewModel>()

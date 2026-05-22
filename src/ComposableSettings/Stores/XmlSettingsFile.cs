@@ -4,19 +4,21 @@ using System.Reflection;
 using System.Xml;
 using System.Xml.Linq;
 using System.Xml.Serialization;
+using ComposableSettings.Configuration;
 using ComposableSettings.Runtime;
+using ComposableSettings.Static;
 
-namespace ComposableSettings.Xml;
+namespace ComposableSettings.Stores;
 
-public class XmlComponentSettingsFile : IComponentSettingsProvider
+public class XmlSettingsFile : IComponentSettingsProvider
 {
     private readonly XDocument _document;
 
-    public XmlComponentSettingsFile(ComponentSettingsFileOptions options)
+    public XmlSettingsFile(SettingsFileOptions options)
     {
         ArgumentNullException.ThrowIfNull(options);
 
-        SettingsFilePath = ComponentSettingsPathResolver.ResolveFilePath(options);
+        SettingsFilePath = SettingsPathResolver.ResolveFilePath(options);
         Directory.CreateDirectory(Path.GetDirectoryName(SettingsFilePath)!);
         _document = LoadOrCreateDocument(SettingsFilePath);
     }
@@ -25,7 +27,7 @@ public class XmlComponentSettingsFile : IComponentSettingsProvider
     ///     Creates an instance from a fully-resolved file path instead of option-based resolution.
     ///     The directory is created if it does not exist.
     /// </summary>
-    public XmlComponentSettingsFile(string filePath)
+    public XmlSettingsFile(string filePath)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(filePath);
 
