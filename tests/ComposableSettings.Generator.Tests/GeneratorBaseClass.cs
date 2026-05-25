@@ -1,5 +1,4 @@
 using System.Collections.Immutable;
-using ComposableSettings.Attributes;
 using ComposableSettings.Generator.SourceGenerators;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -10,97 +9,40 @@ namespace ComposableSettings.Generator.Tests;
 
 public abstract class GeneratorBaseClass(ITestOutputHelper output)
 {
-    protected const string BaseRuntimeSource = """
-                                               namespace ComposableSettings;
+    protected const string ObservableStubsSource = @"
+using System;
 
-                                               public  class SettingsNodePath { }
-                                               public interface ISettingsNodeFactory
-                                               {
-                                                   T CreateChild<T>(SettingsNodePath parentPath, string? instanceName = null)
-                                                       where T : class;
-                                               }
-                                               """;
+namespace ComposableSettings;
 
-    private const string AllStubsSource = """
-                                          using System;
-                                          using System.Threading;
-                                          using System.Threading.Tasks;
+[AttributeUsage(AttributeTargets.Class)]
+public class SettingsModelAttribute : Attribute { }
 
-                                          namespace ComposableSettings;
+[AttributeUsage(AttributeTargets.Class)]
+public class SettingsConsumerAttribute : Attribute
+{
+    public SettingsConsumerAttribute(Type settingsType) { }
+}
 
-                                          [AttributeUsage(AttributeTargets.Class)]
-                                          public  class SettingsRootAttribute : Attribute
-                                          {
-                                              public SettingsRootAttribute(string name) { }
-                                          }
-
-                                          [AttributeUsage(AttributeTargets.Class)]
-                                          public  class SettingsComponentAttribute : Attribute
-                                          {
-                                              public SettingsComponentAttribute(string name) { }
-                                              public SettingsComponentAttribute(string name, Type settingsType) { }
-                                              public bool GenerateLifecycle { get; set; }
-                                          }
-
-                                          [AttributeUsage(AttributeTargets.Property)]
-                                          public  class SettingsChildAttribute : Attribute
-                                          {
-                                              public SettingsChildAttribute() { }
-                                              public SettingsChildAttribute(string name) { }
-                                          }
-
-                                          public  class SettingsNodePath
-                                          {
-                                              public static SettingsNodePath Root(string segment) => new();
-                                              public SettingsNodePath Child(string segment) => new();
-                                          }
-
-                                          public interface ISettingsNodeFactory
-                                          {
-                                              T CreateChild<T>(SettingsNodePath parentPath, string? instanceName = null)
-                                                  where T : class;
-                                          }
-
-                                          public interface IComponentSettingsStore
-                                          {
-                                              void Register<T>(SettingsNodePath path) where T : class, new();
-                                              void CompleteRegistration(bool resetToDefaults = false);
-                                          }
-
-                                          public interface IComponentSettingsInitializer
-                                          {
-                                              void Initialize(bool resetToDefaults = false);
-                                          }
-
-                                          public interface IComponentSettings<TSettings>
-                                              where TSettings : class, new()
-                                          {
-                                              Task SaveAsync(TSettings value, CancellationToken cancellationToken = default);
-                                          }
-                                          """;
+public interface ISettingsProvider<TSettings>
+    where TSettings : class, System.ComponentModel.INotifyPropertyChanged, new()
+{
+    TSettings Current { get; }
+    event EventHandler<TSettings>? Replaced;
+    void Reset();
+    void Reload();
+}
+";
 
     protected (
         ImmutableArray<Diagnostic> Diagnostics,
-        Dictionary<string, string> GeneratedSources) CompileAndRunAllGenerators(params string[] userSources)
+        Dictionary<string, string> GeneratedSources) CompileAndRunObservableGenerators(params string[] userSources)
     {
         return CompileAndRun(
             [
-                new SettingsChildrenGenerator().AsSourceGenerator(),
-                new SettingsRegistrationGenerator().AsSourceGenerator(),
-                new SettingsDIGenerator().AsSourceGenerator(),
-                new SettingsLifecycleGenerator().AsSourceGenerator()
+                new SettingsModelGenerator().AsSourceGenerator(),
+                new SettingsConsumerGenerator().AsSourceGenerator()
             ],
-            AllStubsSource,
-            userSources);
-    }
-
-    protected (
-        ImmutableArray<Diagnostic> Diagnostics,
-        Dictionary<string, string> GeneratedSources) CompileAndRunGenerator(params string[] userSources)
-    {
-        return CompileAndRun(
-            [new SettingsChildrenGenerator().AsSourceGenerator()],
-            null,
+            ObservableStubsSource,
             userSources);
     }
 
@@ -127,10 +69,9 @@ public abstract class GeneratorBaseClass(ITestOutputHelper output)
             .Cast<MetadataReference>()
             .ToList();
 
-        references.Add(MetadataReference.CreateFromFile(typeof(SettingsChildAttribute).Assembly.Location));
-        references.Add(
-            MetadataReference.CreateFromFile(typeof(IServiceCollection)
-                .Assembly.Location));
+        references.Add(MetadataReference.CreateFromFile(
+            typeof(global::ComposableSettings.SettingsModelAttribute).Assembly.Location));
+        references.Add(MetadataReference.CreateFromFile(typeof(IServiceCollection).Assembly.Location));
 
         var compilation = CSharpCompilation.Create(
             "ComposableSettingsGeneratorTestAssembly",

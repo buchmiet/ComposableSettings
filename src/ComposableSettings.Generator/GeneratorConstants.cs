@@ -2,8 +2,6 @@ namespace ComposableSettings.Generator;
 
 internal static class GeneratorConstants
 {
-    public const string SettingsChildAttributeFullName = "ComposableSettings.SettingsChildAttribute";
-    public const string SettingsComponentAttributeFullName = "ComposableSettings.SettingsComponentAttribute";
-    public const string SettingsRootAttributeFullName = "ComposableSettings.SettingsRootAttribute";
-    public const string ViewModelSuffix = "ViewModel";
+    public const string SettingsModelAttributeFullName = "ComposableSettings.SettingsModelAttribute";
+    public const string SettingsConsumerAttributeFullName = "ComposableSettings.SettingsConsumerAttribute";
 }
