@@ -50,4 +50,30 @@ public class SettingsModelGeneratorTests(ITestOutputHelper output) : GeneratorBa
 
         Assert.Contains(diagnostics, d => d.Id == "CSP020");
     }
+
+    [Fact]
+    public void Generates_observable_collection_passthrough_and_constructor_hook()
+    {
+        const string source = """
+            using System.Collections.ObjectModel;
+            using ComposableSettings;
+
+            namespace Demo;
+
+            [SettingsModel]
+            public partial class PaletteSettings
+            {
+                private ObservableCollection<string> _colors = new() { "#a", "#b" };
+                private int _maxColors = 8;
+            }
+            """;
+
+        var (diagnostics, sources) = CompileAndRunObservableGenerators(source);
+
+        Assert.Empty(diagnostics); // get-only collection + ctor hook + scalar all compile
+        Assert.Contains(sources.Values, s =>
+            s.Contains("Colors =>")
+            && s.Contains("CollectionChanged")
+            && s.Contains("MaxColors"));
+    }
 }

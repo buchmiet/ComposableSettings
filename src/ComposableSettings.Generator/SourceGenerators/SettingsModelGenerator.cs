@@ -12,13 +12,17 @@ namespace ComposableSettings.Generator.SourceGenerators;
 
 /// <summary>
 /// Turns a <c>[SettingsModel] partial class</c> into an observable settings model:
-/// emits <see cref="System.ComponentModel.INotifyPropertyChanged"/> plus a public,
-/// change-raising property for every instance field named <c>_camelCase</c>.
-/// Defaults come from the field initializers the user already wrote.
+/// emits <see cref="System.ComponentModel.INotifyPropertyChanged"/> plus, for each
+/// instance field named <c>_camelCase</c>:
+///   - scalar field  -> public change-raising property (default from field initializer),
+///   - ObservableCollection field -> get-only property + a generated constructor that
+///     bridges CollectionChanged to PropertyChanged (so the provider auto-persists on add/remove).
 /// </summary>
 [Generator]
 public class SettingsModelGenerator : IIncrementalGenerator
 {
+    private const string ObservableCollectionDefinition = "System.Collections.ObjectModel.ObservableCollection<T>";
+
     private static readonly DiagnosticDescriptor MustBePartial = new(
         "CSP020",
         "Settings model must be partial",
@@ -31,6 +35,14 @@ public class SettingsModelGenerator : IIncrementalGenerator
         "CSP021",
         "Settings model already implements INotifyPropertyChanged",
         "[SettingsModel] class '{0}' already implements INotifyPropertyChanged; remove the base/interface and let the generator provide it",
+        "ComposableSettings",
+        DiagnosticSeverity.Error,
+        isEnabledByDefault: true);
+
+    private static readonly DiagnosticDescriptor CtorNotAllowedWithCollections = new(
+        "CSP025",
+        "Settings model with collections must not declare a constructor",
+        "[SettingsModel] class '{0}' has observable collection fields, so the generator owns the constructor; remove the user-defined constructor",
         "ComposableSettings",
         DiagnosticSeverity.Error,
         isEnabledByDefault: true);
@@ -59,10 +71,8 @@ public class SettingsModelGenerator : IIncrementalGenerator
     private static void Generate(SourceProductionContext context, ImmutableArray<Candidate?> candidates)
     {
         foreach (var candidate in candidates)
-        {
             if (candidate is not null)
                 GenerateOne(context, candidate);
-        }
     }
 
     private static void GenerateOne(SourceProductionContext context, Candidate candidate)
@@ -81,23 +91,48 @@ public class SettingsModelGenerator : IIncrementalGenerator
             return;
         }
 
-        var fields = symbol.GetMembers()
-            .OfType<IFieldSymbol>()
-            .Where(f => !f.IsImplicitlyDeclared && !f.IsStatic && !f.IsConst && !f.IsReadOnly
-                        && f.AssociatedSymbol is null
-                        && f.Name.StartsWith("_", StringComparison.Ordinal)
-                        && f.Name.TrimStart('_').Length > 0)
-            .Select(f => new FieldModel(f.Name, ToPropertyName(f.Name), f.Type.ToGlobalTypeName()))
-            .Where(fm => !symbol.GetMembers(fm.PropertyName).OfType<IPropertySymbol>().Any())
-            .ToList();
+        var scalars = new List<FieldModel>();
+        var collections = new List<FieldModel>();
 
-        if (fields.Count == 0)
+        foreach (var field in symbol.GetMembers().OfType<IFieldSymbol>())
+        {
+            if (field.IsImplicitlyDeclared || field.IsStatic || field.IsConst || field.AssociatedSymbol is not null)
+                continue;
+            if (!field.Name.StartsWith("_", StringComparison.Ordinal) || field.Name.TrimStart('_').Length == 0)
+                continue;
+
+            var propertyName = ToPropertyName(field.Name);
+            if (symbol.GetMembers(propertyName).OfType<IPropertySymbol>().Any())
+                continue;
+
+            var model = new FieldModel(field.Name, propertyName, field.Type.ToGlobalTypeName());
+            if (IsObservableCollection(field.Type))
+                collections.Add(model);
+            else if (!field.IsReadOnly)
+                scalars.Add(model);
+            // readonly scalar -> skipped (no settable property to generate)
+        }
+
+        if (scalars.Count == 0 && collections.Count == 0)
             return;
+
+        if (collections.Count > 0 && HasUserConstructor(symbol))
+        {
+            context.ReportDiagnostic(Diagnostic.Create(CtorNotAllowedWithCollections, candidate.Syntax.Identifier.GetLocation(), symbol.Name));
+            return;
+        }
 
         context.AddSource(
             $"{symbol.ToDisplayString().Replace('.', '_')}.SettingsModel.g.cs",
-            SourceText.From(BuildSource(symbol, fields), Encoding.UTF8));
+            SourceText.From(BuildSource(symbol, scalars, collections), Encoding.UTF8));
     }
+
+    private static bool IsObservableCollection(ITypeSymbol type)
+        => type is INamedTypeSymbol { IsGenericType: true } named
+           && named.ConstructedFrom.ToDisplayString() == ObservableCollectionDefinition;
+
+    private static bool HasUserConstructor(INamedTypeSymbol type)
+        => type.InstanceConstructors.Any(ctor => !ctor.IsImplicitlyDeclared);
 
     private static string ToPropertyName(string fieldName)
     {
@@ -105,7 +140,10 @@ public class SettingsModelGenerator : IIncrementalGenerator
         return char.ToUpperInvariant(trimmed[0]) + trimmed.Substring(1);
     }
 
-    private static string BuildSource(INamedTypeSymbol type, IReadOnlyList<FieldModel> fields)
+    private static string BuildSource(
+        INamedTypeSymbol type,
+        IReadOnlyList<FieldModel> scalars,
+        IReadOnlyList<FieldModel> collections)
     {
         var ns = type.GetNamespaceName();
         var accessibility = type.GetAccessibilityText();
@@ -125,7 +163,23 @@ public class SettingsModelGenerator : IIncrementalGenerator
         sb.AppendLine("    public event global::System.ComponentModel.PropertyChangedEventHandler? PropertyChanged;");
         sb.AppendLine();
 
-        foreach (var field in fields)
+        // Constructor (only when collections exist) bridges CollectionChanged -> PropertyChanged
+        // so that adds/removes auto-persist through the provider.
+        if (collections.Count > 0)
+        {
+            sb.AppendLine($"    public {type.Name}()");
+            sb.AppendLine("    {");
+            foreach (var collection in collections)
+            {
+                sb.AppendLine($"        {collection.FieldName}.CollectionChanged += (_, _) =>");
+                sb.AppendLine($"            PropertyChanged?.Invoke(this, new global::System.ComponentModel.PropertyChangedEventArgs(nameof({collection.PropertyName})));");
+            }
+
+            sb.AppendLine("    }");
+            sb.AppendLine();
+        }
+
+        foreach (var field in scalars)
         {
             sb.AppendLine($"    public {field.TypeName} {field.PropertyName}");
             sb.AppendLine("    {");
@@ -139,6 +193,13 @@ public class SettingsModelGenerator : IIncrementalGenerator
             sb.AppendLine("            }");
             sb.AppendLine("        }");
             sb.AppendLine("    }");
+            sb.AppendLine();
+        }
+
+        foreach (var collection in collections)
+        {
+            // Get-only: mutate in place (Add/Remove); replacement is not supported.
+            sb.AppendLine($"    public {collection.TypeName} {collection.PropertyName} => {collection.FieldName};");
             sb.AppendLine();
         }
 

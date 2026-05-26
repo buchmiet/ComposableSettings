@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using ComposableSettings.Runtime;
 using ComposableSettings.Stores;
 using Microsoft.Extensions.DependencyInjection;
@@ -19,6 +20,16 @@ public sealed class ObservableSettingsTests
     {
         private double _brightness = 0.8;
         public double Brightness { get => _brightness; set => SetProperty(ref _brightness, value); }
+    }
+
+    // Hand-written equivalent of what SettingsModelGenerator emits for an
+    // ObservableCollection field (get-only collection + CollectionChanged -> PropertyChanged).
+    public sealed class PaletteTestSettings : ObservableSettings
+    {
+        public ObservableCollection<string> Colors { get; } = new() { "#a", "#b" };
+
+        public PaletteTestSettings()
+            => Colors.CollectionChanged += (_, _) => RaisePropertyChanged(nameof(Colors));
     }
 
     private static (ServiceProvider Sp, string RuntimeFile, string GuiFile) BuildTwoFileSetup()
@@ -100,5 +111,26 @@ public sealed class ObservableSettingsTests
             Assert.True(replacedRaised);
             Assert.Equal(2, runtime.Current.MaxConcurrentRuns);
         }
+    }
+
+    [Fact]
+    public void Observable_collection_defaults_persist_and_reload_without_duplication()
+    {
+        var dir = Path.Combine(Path.GetTempPath(), "ComposableSettingsTests", Guid.NewGuid().ToString("N"));
+        var file = Path.Combine(dir, "gui.xml");
+
+        var services = new ServiceCollection();
+        services.AddComposableSettingsFile("gui", file);
+        services.AddSettingsProvider<PaletteTestSettings>("gui", SettingsNodePath.Root("palette"));
+        using var sp = services.BuildServiceProvider();
+
+        var palette = sp.GetRequiredService<ISettingsProvider<PaletteTestSettings>>();
+        Assert.Equal(new[] { "#a", "#b" }, palette.Current.Colors);   // defaults from field initializer
+
+        palette.Current.Colors.Add("#c");                              // mutation -> auto-persist (no Save)
+
+        // Re-open from disk: exactly a,b,c — defaults replaced, not appended.
+        var reopened = new XmlSettingsFile(file).Get<PaletteTestSettings>(SettingsNodePath.Root("palette"));
+        Assert.Equal(new[] { "#a", "#b", "#c" }, reopened.Colors);
     }
 }

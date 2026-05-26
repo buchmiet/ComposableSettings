@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Reflection;
 using System.Xml;
@@ -205,9 +206,13 @@ public class XmlSettingsFile : IComponentSettingsProvider
     {
         foreach (var property in typeof(TSettings).GetProperties(BindingFlags.Instance | BindingFlags.Public))
         {
-            if (!property.CanWrite
-                || !property.PropertyType.IsGenericType
-                || property.PropertyType.GetGenericTypeDefinition() != typeof(List<>))
+            if (!property.PropertyType.IsGenericType)
+                continue;
+
+            var definition = property.PropertyType.GetGenericTypeDefinition();
+            var isList = definition == typeof(List<>) && property.CanWrite;
+            var isObservable = definition == typeof(ObservableCollection<>);
+            if (!isList && !isObservable)
                 continue;
 
             var itemType = property.PropertyType.GetGenericArguments()[0];
@@ -224,11 +229,26 @@ public class XmlSettingsFile : IComponentSettingsProvider
                 ? arrayElement.Elements()
                 : arrayElement.Elements(itemName);
 
-            var list = (IList)Activator.CreateInstance(typeof(List<>).MakeGenericType(itemType))!;
-            foreach (var itemElement in items)
-                list.Add(ConvertListItem(itemElement, itemType));
+            if (isList)
+            {
+                var list = (IList)Activator.CreateInstance(typeof(List<>).MakeGenericType(itemType))!;
+                foreach (var itemElement in items)
+                    list.Add(ConvertListItem(itemElement, itemType));
 
-            property.SetValue(settings, list);
+                property.SetValue(settings, list);
+            }
+            else
+            {
+                // ObservableCollection is get-only: mutate the existing instance in place
+                // (preserves the model's CollectionChanged subscription) and REPLACE its
+                // contents so defaults are not duplicated with the persisted items.
+                if (property.GetValue(settings) is not IList target)
+                    continue;
+
+                target.Clear();
+                foreach (var itemElement in items)
+                    target.Add(ConvertListItem(itemElement, itemType));
+            }
         }
     }
 
