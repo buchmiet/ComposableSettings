@@ -32,6 +32,21 @@ public sealed class ObservableSettingsTests
             => Colors.CollectionChanged += (_, _) => RaisePropertyChanged(nameof(Colors));
     }
 
+    // Complex collection item (plain POCO; mutate the collection, not the item).
+    public sealed class ScheduleItem
+    {
+        public string JobId { get; set; } = string.Empty;
+        public string Cron { get; set; } = string.Empty;
+    }
+
+    public sealed class SchedulesTestSettings : ObservableSettings
+    {
+        public ObservableCollection<ScheduleItem> Schedules { get; } = new();
+
+        public SchedulesTestSettings()
+            => Schedules.CollectionChanged += (_, _) => RaisePropertyChanged(nameof(Schedules));
+    }
+
     private static (ServiceProvider Sp, string RuntimeFile, string GuiFile) BuildTwoFileSetup()
     {
         var dir = Path.Combine(Path.GetTempPath(), "ComposableSettingsTests", Guid.NewGuid().ToString("N"));
@@ -132,5 +147,31 @@ public sealed class ObservableSettingsTests
         // Re-open from disk: exactly a,b,c — defaults replaced, not appended.
         var reopened = new XmlSettingsFile(file).Get<PaletteTestSettings>(SettingsNodePath.Root("palette"));
         Assert.Equal(new[] { "#a", "#b", "#c" }, reopened.Colors);
+    }
+
+    [Fact]
+    public void Observable_collection_of_complex_items_round_trips()
+    {
+        var dir = Path.Combine(Path.GetTempPath(), "ComposableSettingsTests", Guid.NewGuid().ToString("N"));
+        var file = Path.Combine(dir, "runtime.xml");
+
+        var services = new ServiceCollection();
+        services.AddComposableSettingsFile("runtime", file);
+        services.AddSettingsProvider<SchedulesTestSettings>("runtime", SettingsNodePath.Root("runtime"));
+        using var sp = services.BuildServiceProvider();
+
+        var schedules = sp.GetRequiredService<ISettingsProvider<SchedulesTestSettings>>();
+        Assert.Empty(schedules.Current.Schedules);
+
+        schedules.Current.Schedules.Add(new ScheduleItem { JobId = "job-a", Cron = "0 0 * * *" });
+        schedules.Current.Schedules.Add(new ScheduleItem { JobId = "job-b", Cron = "*/5 * * * *" });
+
+        // Re-open from disk: complex items round-trip with their properties intact.
+        var reopened = new XmlSettingsFile(file).Get<SchedulesTestSettings>(SettingsNodePath.Root("runtime"));
+        Assert.Equal(2, reopened.Schedules.Count);
+        Assert.Equal("job-a", reopened.Schedules[0].JobId);
+        Assert.Equal("0 0 * * *", reopened.Schedules[0].Cron);
+        Assert.Equal("job-b", reopened.Schedules[1].JobId);
+        Assert.Equal("*/5 * * * *", reopened.Schedules[1].Cron);
     }
 }

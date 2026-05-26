@@ -256,9 +256,14 @@ public class XmlSettingsFile : IComponentSettingsProvider
     {
         if (itemType == typeof(string))
             return element.Value;
+        if (itemType.IsEnum)
+            return Enum.Parse(itemType, element.Value);
+        if (typeof(IConvertible).IsAssignableFrom(itemType))
+            return Convert.ChangeType(element.Value, itemType, CultureInfo.InvariantCulture);
 
-        return itemType.IsEnum
-            ? Enum.Parse(itemType, element.Value)
-            : Convert.ChangeType(element.Value, itemType, CultureInfo.InvariantCulture);
+        // Complex item type: deserialize the element itself (its child properties).
+        var serializer = new XmlSerializer(itemType, new XmlRootAttribute(element.Name.LocalName));
+        using var reader = element.CreateReader();
+        return serializer.Deserialize(reader)!;
     }
 }
