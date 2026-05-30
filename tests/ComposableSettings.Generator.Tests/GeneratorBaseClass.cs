@@ -46,6 +46,47 @@ public interface ISettingsProvider<TSettings>
             userSources);
     }
 
+    // Stubs for the ObservableSettings flavour: the new attributes plus a minimal
+    // ObservableObject base exposing a protected OnPropertyChanged(string) — the
+    // relay target the generator emits into (mirrors CommunityToolkit).
+    protected const string ObservableSettingsStubsSource = @"
+using System;
+using System.ComponentModel;
+
+namespace ComposableSettings;
+
+[AttributeUsage(AttributeTargets.Class)]
+public sealed class ObservableSettingsAttribute : Attribute
+{
+    public ObservableSettingsAttribute(Type settingsType) { }
+}
+
+[AttributeUsage(AttributeTargets.Property)]
+public sealed class SettingsProxyAttribute : Attribute { }
+
+public abstract class ObservableObjectStub : INotifyPropertyChanged
+{
+    public event PropertyChangedEventHandler? PropertyChanged;
+    protected void OnPropertyChanged(string propertyName)
+        => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+}
+";
+
+    protected (
+        ImmutableArray<Diagnostic> Diagnostics,
+        Dictionary<string, string> GeneratedSources) CompileAndRunObservableSettingsGenerator(params string[] userSources)
+    {
+        // Pass the extra stubs as a SEPARATE source tree (not string-concatenated),
+        // otherwise its leading `using` lands after the first stub's namespace (CS1529).
+        return CompileAndRun(
+            [
+                new SettingsModelGenerator().AsSourceGenerator(),
+                new ObservableSettingsGenerator().AsSourceGenerator()
+            ],
+            ObservableStubsSource,
+            userSources.Prepend(ObservableSettingsStubsSource).ToArray());
+    }
+
     private (
         ImmutableArray<Diagnostic> Diagnostics,
         Dictionary<string, string> GeneratedSources) CompileAndRun(
