@@ -56,9 +56,9 @@ using System.ComponentModel;
 namespace ComposableSettings;
 
 [AttributeUsage(AttributeTargets.Class)]
-public sealed class ObservableSettingsAttribute : Attribute
+public sealed class SettingsVmAttribute : Attribute
 {
-    public ObservableSettingsAttribute(Type settingsType) { }
+    public SettingsVmAttribute(Type settingsType) { }
 }
 
 [AttributeUsage(AttributeTargets.Property)]

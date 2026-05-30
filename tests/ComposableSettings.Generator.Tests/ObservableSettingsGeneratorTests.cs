@@ -19,7 +19,7 @@ public class ObservableSettingsGeneratorTests(ITestOutputHelper output) : Genera
                 private string _baseColor = "#e6194b";
             }
 
-            [ObservableSettings(typeof(ClockSettings))]
+            [SettingsVm(typeof(ClockSettings))]
             public partial class ClockViewModel : ObservableObjectStub
             {
                 public ClockViewModel(ISettingsProvider<ClockSettings> p) => InitializeSettings(p);
@@ -55,7 +55,7 @@ public class ObservableSettingsGeneratorTests(ITestOutputHelper output) : Genera
             [SettingsModel]
             public partial class ClockSettings { private bool _isGlslEnabled = true; }
 
-            [ObservableSettings(typeof(ClockSettings))]
+            [SettingsVm(typeof(ClockSettings))]
             public partial class ClockViewModel : ObservableObjectStub
             {
                 public ClockViewModel(ISettingsProvider<ClockSettings> p) => InitializeSettings(p);
@@ -79,7 +79,7 @@ public class ObservableSettingsGeneratorTests(ITestOutputHelper output) : Genera
             [SettingsModel]
             public partial class ClockSettings { private bool _isGlslEnabled; }
 
-            [ObservableSettings(typeof(ClockSettings))]
+            [SettingsVm(typeof(ClockSettings))]
             public class NotPartialVm : ObservableObjectStub { }
             """;
 
