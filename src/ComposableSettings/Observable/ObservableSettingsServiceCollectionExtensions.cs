@@ -36,10 +36,36 @@ public static class ObservableSettingsServiceCollectionExtensions
     public static IServiceCollection AddSettingsProvider<TSettings>(
         this IServiceCollection services, string fileKey, SettingsNodePath node)
         where TSettings : class, INotifyPropertyChanged, new()
+        => services.AddSettingsProvider<TSettings>(fileKey, node, SettingsProviderOptions.Default);
+
+    /// <summary>
+    /// Registers <see cref="ISettingsProvider{TSettings}"/> bound to a file + node
+    /// and coalesces writes to the backing store with <paramref name="persistDebounceDelay"/>.
+    /// </summary>
+    public static IServiceCollection AddSettingsProvider<TSettings>(
+        this IServiceCollection services,
+        string fileKey,
+        SettingsNodePath node,
+        TimeSpan persistDebounceDelay)
+        where TSettings : class, INotifyPropertyChanged, new()
+        => services.AddSettingsProvider<TSettings>(
+            fileKey,
+            node,
+            new SettingsProviderOptions { PersistDebounceDelay = persistDebounceDelay });
+
+    /// <summary>Registers <see cref="ISettingsProvider{TSettings}"/> bound to a file + node.</summary>
+    public static IServiceCollection AddSettingsProvider<TSettings>(
+        this IServiceCollection services,
+        string fileKey,
+        SettingsNodePath node,
+        SettingsProviderOptions? options)
+        where TSettings : class, INotifyPropertyChanged, new()
     {
         services.AddSingleton<ISettingsProvider<TSettings>>(sp =>
             new SettingsProvider<TSettings>(
-                sp.GetRequiredKeyedService<IComponentSettingsProvider>(fileKey), node));
+                sp.GetRequiredKeyedService<IComponentSettingsProvider>(fileKey),
+                node,
+                options ?? SettingsProviderOptions.Default));
         return services;
     }
 }

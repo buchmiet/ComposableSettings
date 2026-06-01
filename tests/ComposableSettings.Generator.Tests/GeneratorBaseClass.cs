@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Reflection;
 using ComposableSettings.Generator.SourceGenerators;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -37,7 +38,7 @@ public interface ISettingsProvider<TSettings>
         ImmutableArray<Diagnostic> Diagnostics,
         Dictionary<string, string> GeneratedSources) CompileAndRunObservableGenerators(params string[] userSources)
     {
-        return CompileAndRun(
+        return BuildAndEmit(
             [
                 new SettingsModelGenerator().AsSourceGenerator(),
                 new SettingsConsumerGenerator().AsSourceGenerator()
@@ -78,7 +79,7 @@ public abstract class ObservableObjectStub : INotifyPropertyChanged
     {
         // Pass the extra stubs as a SEPARATE source tree (not string-concatenated),
         // otherwise its leading `using` lands after the first stub's namespace (CS1529).
-        return CompileAndRun(
+        return BuildAndEmit(
             [
                 new SettingsModelGenerator().AsSourceGenerator(),
                 new ObservableSettingsGenerator().AsSourceGenerator()
@@ -87,9 +88,117 @@ public abstract class ObservableObjectStub : INotifyPropertyChanged
             userSources.Prepend(ObservableSettingsStubsSource).ToArray());
     }
 
+    protected const string BehaviorTestInfrastructureSource = @"
+using System;
+using System.ComponentModel;
+
+namespace ComposableSettings.Testing;
+
+public sealed class TestSettingsProvider<TSettings> : ISettingsProvider<TSettings>
+    where TSettings : class, INotifyPropertyChanged, new()
+{
+    private TSettings _current = new();
+
+    public TSettings Current => _current;
+
+    public event EventHandler<TSettings>? Replaced;
+
+    public void Reset() => ReplaceWithNew();
+
+    public void Reload() => ReplaceWithNew();
+
+    public void ReplaceWithNew()
+    {
+        _current = new TSettings();
+        Replaced?.Invoke(this, _current);
+    }
+}
+";
+
+    protected Assembly CompileEmitObservableSettingsAssembly(params string[] userSources)
+    {
+        var (diagnostics, _, compilation) = BuildObservableSettingsCompilation(
+            userSources.Prepend(BehaviorTestInfrastructureSource).ToArray());
+
+        var emitDiagnostics = EmitCompilation(compilation, out var assemblyBytes);
+        var allDiagnostics = FilterDiagnostics(diagnostics.AddRange(emitDiagnostics));
+
+        if (!allDiagnostics.IsEmpty)
+        {
+            foreach (var diagnostic in allDiagnostics)
+                output.WriteLine($"{diagnostic.Id}: {diagnostic.GetMessage()}");
+            throw new InvalidOperationException(
+                $"Compilation failed with {allDiagnostics.Length} diagnostic(s): "
+                + string.Join("; ", allDiagnostics.Select(d => $"{d.Id}: {d.GetMessage()}")));
+        }
+
+        return Assembly.Load(assemblyBytes);
+    }
+
+    protected object CompileEmitAndInvokeObservableSettings(
+        string fullyQualifiedTypeName,
+        string methodName = "Run",
+        params string[] userSources)
+    {
+        var assembly = CompileEmitObservableSettingsAssembly(userSources);
+        var type = assembly.GetType(fullyQualifiedTypeName, throwOnError: true)
+                   ?? throw new InvalidOperationException($"Type not found: {fullyQualifiedTypeName}");
+        var method = type.GetMethod(methodName, BindingFlags.Public | BindingFlags.Static)
+                     ?? throw new InvalidOperationException($"Static method not found: {methodName}");
+        return method.Invoke(null, null)!;
+    }
+
     private (
         ImmutableArray<Diagnostic> Diagnostics,
-        Dictionary<string, string> GeneratedSources) CompileAndRun(
+        Dictionary<string, string> GeneratedSources,
+        Compilation Compilation) BuildObservableSettingsCompilation(params string[] userSources)
+    {
+        return BuildCompilation(
+            [
+                new SettingsModelGenerator().AsSourceGenerator(),
+                new ObservableSettingsGenerator().AsSourceGenerator()
+            ],
+            ObservableStubsSource,
+            userSources.Prepend(ObservableSettingsStubsSource).ToArray());
+    }
+
+    private static ImmutableArray<Diagnostic> EmitCompilation(Compilation compilation, out byte[] assemblyBytes)
+    {
+        using var stream = new MemoryStream();
+        var emitResult = compilation.Emit(stream);
+        assemblyBytes = stream.ToArray();
+        return emitResult.Diagnostics;
+    }
+
+    private static ImmutableArray<Diagnostic> FilterDiagnostics(ImmutableArray<Diagnostic> diagnostics)
+        => diagnostics
+            .Where(diagnostic =>
+                diagnostic.Severity is DiagnosticSeverity.Error or DiagnosticSeverity.Warning
+                && diagnostic.Id != "CS0436"
+                && diagnostic.Id != "CS8632")
+            .ToImmutableArray();
+
+    private (
+        ImmutableArray<Diagnostic> Diagnostics,
+        Dictionary<string, string> GeneratedSources) BuildAndEmit(
+            ISourceGenerator[] generators,
+            string? stubSource,
+            params string[] userSources)
+    {
+        var (diagnostics, generatedSources, compilation) = BuildCompilation(generators, stubSource, userSources);
+        var emitDiagnostics = EmitCompilation(compilation, out _);
+        var allDiagnostics = FilterDiagnostics(diagnostics.AddRange(emitDiagnostics));
+
+        foreach (var diagnostic in allDiagnostics)
+            output.WriteLine($"{diagnostic.Id}: {diagnostic.GetMessage()}");
+
+        return (allDiagnostics, generatedSources);
+    }
+
+    private (
+        ImmutableArray<Diagnostic> Diagnostics,
+        Dictionary<string, string> GeneratedSources,
+        Compilation Compilation) BuildCompilation(
             ISourceGenerator[] generators,
             string? stubSource,
             params string[] userSources)
@@ -138,18 +247,6 @@ public abstract class ObservableObjectStub : INotifyPropertyChanged
             output.WriteLine(generatedSource.SourceText.ToString());
         }
 
-        using var stream = new MemoryStream();
-        var emitResult = outCompilation.Emit(stream);
-        var diagnostics = generatorDiagnostics
-            .AddRange(emitResult.Diagnostics)
-            .Where(diagnostic =>
-                diagnostic.Severity is DiagnosticSeverity.Error or DiagnosticSeverity.Warning
-                && diagnostic.Id != "CS0436"
-                && diagnostic.Id != "CS8632")
-            .ToImmutableArray();
-
-        foreach (var diagnostic in diagnostics) output.WriteLine($"{diagnostic.Id}: {diagnostic.GetMessage()}");
-
-        return (diagnostics, generatedSources);
+        return (generatorDiagnostics, generatedSources, outCompilation);
     }
 }

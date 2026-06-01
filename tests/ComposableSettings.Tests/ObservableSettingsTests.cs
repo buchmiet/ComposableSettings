@@ -7,6 +7,42 @@ namespace ComposableSettings.Tests;
 
 public sealed class ObservableSettingsTests
 {
+    private sealed class CountingComponentSettingsProvider : IComponentSettingsProvider
+    {
+        private readonly object _gate = new();
+        private object? _lastValue;
+
+        public int SetCount { get; private set; }
+
+        public TSettings Get<TSettings>(SettingsNodePath path)
+            where TSettings : class, new()
+        {
+            lock (_gate)
+            {
+                return _lastValue is TSettings typed ? typed : new TSettings();
+            }
+        }
+
+        public void Set<TSettings>(SettingsNodePath path, TSettings value)
+            where TSettings : class, new()
+        {
+            lock (_gate)
+            {
+                SetCount++;
+                _lastValue = value;
+            }
+        }
+
+        public TSettings? Last<TSettings>()
+            where TSettings : class
+        {
+            lock (_gate)
+            {
+                return _lastValue as TSettings;
+            }
+        }
+    }
+
     public sealed class RuntimeTestSettings : ObservableSettings
     {
         private string _pluginsFolder = "./plugins";
@@ -239,5 +275,77 @@ public sealed class ObservableSettingsTests
 
         var reopened = new XmlSettingsFile(file).Get<SchedulesTestSettings>(SettingsNodePath.Root("runtime"));
         Assert.Equal("*/10 * * * *", reopened.Schedules.Single().Cron);
+    }
+
+    [Fact]
+    public async Task Debounced_provider_coalesces_persist_writes()
+    {
+        var store = new CountingComponentSettingsProvider();
+        var services = new ServiceCollection();
+        services.AddComposableSettingsFile("runtime", store);
+        services.AddSettingsProvider<RuntimeTestSettings>(
+            "runtime",
+            SettingsNodePath.Root("runtime"),
+            TimeSpan.FromMilliseconds(50));
+        using var sp = services.BuildServiceProvider();
+
+        var runtime = sp.GetRequiredService<ISettingsProvider<RuntimeTestSettings>>();
+        runtime.Current.MaxConcurrentRuns = 3;
+        runtime.Current.MaxConcurrentRuns = 4;
+        runtime.Current.PluginsFolder = "/tmp/plugins";
+
+        Assert.Equal(0, store.SetCount);
+
+        await Task.Delay(200);
+
+        Assert.Equal(1, store.SetCount);
+        Assert.Equal(4, store.Last<RuntimeTestSettings>()?.MaxConcurrentRuns);
+        Assert.Equal("/tmp/plugins", store.Last<RuntimeTestSettings>()?.PluginsFolder);
+    }
+
+    [Fact]
+    public void Disposing_debounced_provider_flushes_pending_persist()
+    {
+        var store = new CountingComponentSettingsProvider();
+        var services = new ServiceCollection();
+        services.AddComposableSettingsFile("runtime", store);
+        services.AddSettingsProvider<RuntimeTestSettings>(
+            "runtime",
+            SettingsNodePath.Root("runtime"),
+            TimeSpan.FromMinutes(1));
+        using var sp = services.BuildServiceProvider();
+
+        var runtime = sp.GetRequiredService<ISettingsProvider<RuntimeTestSettings>>();
+        runtime.Current.MaxConcurrentRuns = 11;
+
+        sp.Dispose();
+
+        Assert.Equal(1, store.SetCount);
+        Assert.Equal(11, store.Last<RuntimeTestSettings>()?.MaxConcurrentRuns);
+    }
+
+    [Fact]
+    public async Task Reset_cancels_pending_debounced_persist_and_writes_defaults_immediately()
+    {
+        var store = new CountingComponentSettingsProvider();
+        var services = new ServiceCollection();
+        services.AddComposableSettingsFile("runtime", store);
+        services.AddSettingsProvider<RuntimeTestSettings>(
+            "runtime",
+            SettingsNodePath.Root("runtime"),
+            TimeSpan.FromMilliseconds(50));
+        using var sp = services.BuildServiceProvider();
+
+        var runtime = sp.GetRequiredService<ISettingsProvider<RuntimeTestSettings>>();
+        runtime.Current.MaxConcurrentRuns = 11;
+        runtime.Reset();
+
+        Assert.Equal(1, store.SetCount);
+        Assert.Equal(2, store.Last<RuntimeTestSettings>()?.MaxConcurrentRuns);
+
+        await Task.Delay(200);
+
+        Assert.Equal(1, store.SetCount);
+        Assert.Equal(2, store.Last<RuntimeTestSettings>()?.MaxConcurrentRuns);
     }
 }

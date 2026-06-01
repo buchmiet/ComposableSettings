@@ -25,11 +25,13 @@ clock.Current.BaseColor = "#00FF00";   // persisted automatically; bindings upda
 ## Install
 
 ```xml
-<PackageReference Include="ComposableSettings" Version="1.0.11" />
+<PackageReference Include="ComposableSettings" Version="1.0.*" />
 ```
 
 Targets `net10.0`. The source generators ship inside the package as analyzers, so
 they activate automatically on install — no extra reference needed.
+
+Versioning follows CI run numbers (`1.0.{run}`) on pushes to `main`.
 
 ## Quick start
 
@@ -90,6 +92,16 @@ services.AddSettingsProvider<RuntimeSettings>("runtime", SettingsNodePath.Root("
 `gui.xml` and `runtime.xml` are independent: the runtime owner does not know about
 GUI settings and vice versa.
 
+For slider-heavy screens, debounce only the persistence write while keeping the
+live settings object synchronous:
+
+```csharp
+services.AddSettingsProvider<ClockSettings>(
+    "gui",
+    SettingsNodePath.Root("clock"),
+    TimeSpan.FromMilliseconds(250));
+```
+
 ### 3. Consume the live instance
 
 Inject `ISettingsProvider<T>` and read/write `Current`:
@@ -117,8 +129,8 @@ public interface ISettingsProvider<TSettings>
 ```
 
 There is **no `Save`**: the provider subscribes to the instance's
-`PropertyChanged` and persists each change (debounce in your store if you want
-batching).
+`PropertyChanged` and persists each change. Use the debounced registration
+overload to coalesce writes to the backing store without delaying `Current`.
 
 ### 4. (UI) Consumers that bind, with zero stored state
 
@@ -177,6 +189,7 @@ Node paths address a model within a file: `SettingsNodePath.Root("gui").Child("c
 |---|---|---|
 | `SettingsModelGenerator` | `[SettingsModel] partial class` | `INotifyPropertyChanged`, properties (scalar / collection / nested), and a constructor that tracks nested members |
 | `SettingsConsumerGenerator` | `[SettingsConsumer(typeof(T))] partial class` | `Settings` pass-through property + `InitializeGeneratedSettings(provider)` + INPC relay |
+| `ObservableSettingsGenerator` | `[SettingsVm(typeof(T))] partial class` (existing INPC) | `Settings` pass-through + `InitializeSettings(provider)` + relay into `OnPropertyChanged` + `[SettingsProxy]` bodies + `DisposeGeneratedSettings()` |
 
 ### Diagnostics
 
@@ -189,6 +202,10 @@ Node paths address a model within a file: `SettingsNodePath.Root("gui").Child("c
 | CSP024 | `[SettingsConsumer]` class must not already implement `INotifyPropertyChanged` |
 | CSP025 | `[SettingsModel]` with tracked members must not declare a constructor (the generator owns it) |
 | CSP026 | a nested-object field must be non-`readonly` (the generator owns its setter; `readonly` is fine for collections) |
+| CSP030 | `[SettingsVm]` class must be `partial` |
+| CSP031 | `[SettingsVm]` requires a settings type argument |
+| CSP032 | `[SettingsProxy]` has no matching settings model member |
+| CSP033 | `[SettingsProxy]` type does not match the settings member type |
 
 ## Conventions & limitations
 

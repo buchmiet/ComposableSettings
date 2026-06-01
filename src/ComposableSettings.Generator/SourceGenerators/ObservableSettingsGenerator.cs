@@ -46,6 +46,22 @@ public class ObservableSettingsGenerator : IIncrementalGenerator
         DiagnosticSeverity.Error,
         isEnabledByDefault: true);
 
+    private static readonly DiagnosticDescriptor ProxyPropertyMissing = new(
+        "CSP032",
+        "Settings proxy has no matching settings property",
+        "[SettingsProxy] property '{0}' on '{2}' has no matching public property on settings type '{1}'",
+        "ComposableSettings",
+        DiagnosticSeverity.Error,
+        isEnabledByDefault: true);
+
+    private static readonly DiagnosticDescriptor ProxyTypeMismatch = new(
+        "CSP033",
+        "Settings proxy type does not match settings property",
+        "[SettingsProxy] property '{0}' on '{3}' has type '{1}' but the settings property has type '{2}'",
+        "ComposableSettings",
+        DiagnosticSeverity.Error,
+        isEnabledByDefault: true);
+
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
         var candidates = context.SyntaxProvider
@@ -75,7 +91,6 @@ public class ObservableSettingsGenerator : IIncrementalGenerator
         var proxies = symbol.GetMembers()
             .OfType<IPropertySymbol>()
             .Where(p => p.HasAttribute(GeneratorConstants.SettingsProxyAttributeFullName))
-            .Select(p => new ProxyInfo(p.Name, p.Type.ToGlobalTypeName()))
             .ToList();
 
         return new Candidate(syntax, symbol, settingsType, proxies);
@@ -106,9 +121,62 @@ public class ObservableSettingsGenerator : IIncrementalGenerator
             return;
         }
 
+        var validProxies = ValidateProxies(context, candidate);
         context.AddSource(
             $"{symbol.ToDisplayString().Replace('.', '_')}.ObservableSettings.g.cs",
-            SourceText.From(BuildSource(symbol, candidate.SettingsType.ToGlobalTypeName(), candidate.Proxies), Encoding.UTF8));
+            SourceText.From(BuildSource(symbol, candidate.SettingsType.ToGlobalTypeName(), validProxies), Encoding.UTF8));
+    }
+
+    private static List<ProxyInfo> ValidateProxies(SourceProductionContext context, Candidate candidate)
+    {
+        var settingsType = candidate.SettingsType!;
+        var validProxies = new List<ProxyInfo>();
+
+        foreach (var proxy in candidate.Proxies)
+        {
+            var location = GetProxyDiagnosticLocation(proxy);
+
+            if (!SettingsModelMemberResolver.TryResolveMemberType(settingsType, proxy.Name, out var settingsMemberType))
+            {
+                context.ReportDiagnostic(Diagnostic.Create(
+                    ProxyPropertyMissing,
+                    location,
+                    proxy.Name,
+                    settingsType.Name,
+                    candidate.Symbol.Name));
+                continue;
+            }
+
+            if (!SymbolEqualityComparer.Default.Equals(proxy.Type, settingsMemberType))
+            {
+                context.ReportDiagnostic(Diagnostic.Create(
+                    ProxyTypeMismatch,
+                    location,
+                    proxy.Name,
+                    proxy.Type.ToDisplayString(),
+                    settingsMemberType.ToDisplayString(),
+                    candidate.Symbol.Name));
+                continue;
+            }
+
+            validProxies.Add(new ProxyInfo(proxy.Name, proxy.Type.ToGlobalTypeName()));
+        }
+
+        return validProxies;
+    }
+
+    private static Location GetProxyDiagnosticLocation(IPropertySymbol proxy)
+    {
+        if (proxy.Locations is { Length: > 0 } locations && locations[0].IsInSource)
+            return locations[0];
+
+        foreach (var reference in proxy.DeclaringSyntaxReferences)
+        {
+            if (reference.GetSyntax() is PropertyDeclarationSyntax propertySyntax)
+                return propertySyntax.Identifier.GetLocation();
+        }
+
+        return Location.None;
     }
 
     private static string BuildSource(INamedTypeSymbol type, string settingsType, List<ProxyInfo> proxies)
@@ -130,6 +198,7 @@ public class ObservableSettingsGenerator : IIncrementalGenerator
         sb.AppendLine("{");
         sb.AppendLine($"    private global::ComposableSettings.ISettingsProvider<{settingsType}> _settingsProvider = null!;");
         sb.AppendLine($"    private {settingsType}? _hookedSettings;");
+        sb.AppendLine("    private bool _generatedSettingsDisposed;");
         sb.AppendLine();
         sb.AppendLine("    /// <summary>Live, shared settings instance. The component stores no copy.</summary>");
         sb.AppendLine($"    public {settingsType} Settings => _settingsProvider.Current;");
@@ -138,15 +207,34 @@ public class ObservableSettingsGenerator : IIncrementalGenerator
         sb.AppendLine("    {");
         sb.AppendLine("        _settingsProvider = provider;");
         sb.AppendLine("        RehookGeneratedSettings();");
-        sb.AppendLine("        provider.Replaced += (_, _) =>");
+        sb.AppendLine("        provider.Replaced += OnSettingsProviderReplaced;");
+        sb.AppendLine("    }");
+        sb.AppendLine();
+        sb.AppendLine($"    private void OnSettingsProviderReplaced(object? sender, {settingsType} e)");
+        sb.AppendLine("    {");
+        sb.AppendLine("        if (_generatedSettingsDisposed)");
+        sb.AppendLine("            return;");
+        sb.AppendLine("        RehookGeneratedSettings();");
+        sb.AppendLine("        RaiseAllSettings();");
+        sb.AppendLine("    }");
+        sb.AppendLine();
+        sb.AppendLine($"{accessibility} void DisposeGeneratedSettings()");
+        sb.AppendLine("    {");
+        sb.AppendLine("        if (_generatedSettingsDisposed)");
+        sb.AppendLine("            return;");
+        sb.AppendLine("        _generatedSettingsDisposed = true;");
+        sb.AppendLine("        _settingsProvider.Replaced -= OnSettingsProviderReplaced;");
+        sb.AppendLine("        if (_hookedSettings is not null)");
         sb.AppendLine("        {");
-        sb.AppendLine("            RehookGeneratedSettings();");
-        sb.AppendLine("            RaiseAllSettings();");
-        sb.AppendLine("        };");
+        sb.AppendLine("            _hookedSettings.PropertyChanged -= OnGeneratedSettingsChanged;");
+        sb.AppendLine("            _hookedSettings = null;");
+        sb.AppendLine("        }");
         sb.AppendLine("    }");
         sb.AppendLine();
         sb.AppendLine("    private void RehookGeneratedSettings()");
         sb.AppendLine("    {");
+        sb.AppendLine("        if (_generatedSettingsDisposed)");
+        sb.AppendLine("            return;");
         sb.AppendLine("        if (_hookedSettings is not null)");
         sb.AppendLine("            _hookedSettings.PropertyChanged -= OnGeneratedSettingsChanged;");
         sb.AppendLine("        _hookedSettings = _settingsProvider.Current;");
@@ -155,6 +243,8 @@ public class ObservableSettingsGenerator : IIncrementalGenerator
         sb.AppendLine();
         sb.AppendLine("    private void OnGeneratedSettingsChanged(object? sender, global::System.ComponentModel.PropertyChangedEventArgs e)");
         sb.AppendLine("    {");
+        sb.AppendLine("        if (_generatedSettingsDisposed)");
+        sb.AppendLine("            return;");
         sb.AppendLine("        OnPropertyChanged(nameof(Settings));");
         sb.AppendLine("        if (!string.IsNullOrEmpty(e.PropertyName))");
         sb.AppendLine("            OnPropertyChanged(e.PropertyName!);");
@@ -163,6 +253,8 @@ public class ObservableSettingsGenerator : IIncrementalGenerator
         sb.AppendLine();
         sb.AppendLine("    private void RaiseAllSettings()");
         sb.AppendLine("    {");
+        sb.AppendLine("        if (_generatedSettingsDisposed)");
+        sb.AppendLine("            return;");
         sb.AppendLine("        OnPropertyChanged(nameof(Settings));");
         foreach (var proxy in proxies)
             sb.AppendLine($"        OnPropertyChanged(\"{proxy.Name}\");");
@@ -190,12 +282,12 @@ public class ObservableSettingsGenerator : IIncrementalGenerator
         ClassDeclarationSyntax syntax,
         INamedTypeSymbol symbol,
         INamedTypeSymbol? settingsType,
-        List<ProxyInfo> proxies)
+        List<IPropertySymbol> proxies)
     {
         public ClassDeclarationSyntax Syntax { get; } = syntax;
         public INamedTypeSymbol Symbol { get; } = symbol;
         public INamedTypeSymbol? SettingsType { get; } = settingsType;
-        public List<ProxyInfo> Proxies { get; } = proxies;
+        public List<IPropertySymbol> Proxies { get; } = proxies;
     }
 
     private sealed class ProxyInfo(string name, string type)

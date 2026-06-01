@@ -17,6 +17,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="Debouncer.Sharp" Version="1.0.2"/>
         <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.7"/>
     </ItemGroup>
 

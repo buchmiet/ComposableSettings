@@ -40,6 +40,8 @@ public class ObservableSettingsGeneratorTests(ITestOutputHelper output) : Genera
         Assert.Contains("set => Settings.IsGlslEnabled = value;", generated);
         // Relays into the EXISTING INPC instead of declaring its own event.
         Assert.Contains("OnPropertyChanged(nameof(Settings));", generated);
+        Assert.Contains("provider.Replaced += OnSettingsProviderReplaced;", generated);
+        Assert.Contains("void DisposeGeneratedSettings()", generated);
         Assert.DoesNotContain("event", generated);
     }
 
