@@ -31,7 +31,13 @@ clock.Current.BaseColor = "#00FF00";   // persisted automatically; bindings upda
 Targets `net10.0`. The source generators ship inside the package as analyzers, so
 they activate automatically on install — no extra reference needed.
 
-Versioning follows CI run numbers (`1.0.{run}`) on pushes to `main`.
+Versioning follows CI run numbers (`1.0.{run}`) on pushes to `main` (see
+`.github/workflows/publish-nuget.yml`). The `<Version>` in the csproj is a local placeholder;
+**CI sets `PackageVersion` at pack time.**
+
+**Actuator consumers** use `Version="1.0.*"` and pick up the latest publish on restore — do not
+pin build numbers in actuator csproj. Cross-repo workflow:
+[`actuator/docs/COMPOSABLESETTINGS_PACKAGE_WORKFLOW.md`](../actuator/docs/COMPOSABLESETTINGS_PACKAGE_WORKFLOW.md).
 
 ## Quick start
 
@@ -167,8 +173,9 @@ This is wired by the generated constructor via `SettingsChangeTracking`
 ## Persistence / custom stores
 
 `AddComposableSettingsFile(key, path)` uses the built-in `XmlSettingsFile`
-(human-readable XML, one file per owner). To plug a different backend, implement
-`IComponentSettingsProvider` and register it under a key:
+(human-readable XML, one file per owner). `AddComposableSettingsJsonFile(key, path)` uses
+`JsonSettingsFile` (System.Text.Json, full-rewrite per node). To plug a different backend,
+implement `IComponentSettingsProvider` and register it under a key:
 
 ```csharp
 public interface IComponentSettingsProvider

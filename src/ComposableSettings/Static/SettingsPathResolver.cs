@@ -47,10 +47,26 @@ public static class SettingsPathResolver
         if (string.IsNullOrWhiteSpace(options.FileName))
             throw new ArgumentException("FileName is required.", nameof(options));
 
-        var fileName = options.FileName.EndsWith(".xml", StringComparison.OrdinalIgnoreCase)
+        var fileName = HasExplicitExtension(options.FileName)
             ? options.FileName
             : options.FileName + ".xml";
 
         return Path.Combine(ResolveDirectory(options), fileName);
     }
+
+    public static string ResolveJsonFilePath(SettingsFileOptions options)
+    {
+        ArgumentNullException.ThrowIfNull(options);
+        if (string.IsNullOrWhiteSpace(options.FileName))
+            throw new ArgumentException("FileName is required.", nameof(options));
+
+        var fileName = HasExplicitExtension(options.FileName)
+            ? options.FileName
+            : options.FileName + ".json";
+
+        return Path.Combine(ResolveDirectory(options), fileName);
+    }
+
+    private static bool HasExplicitExtension(string fileName)
+        => fileName.Contains('.', StringComparison.Ordinal);
 }

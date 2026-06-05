@@ -24,6 +24,15 @@ public static class ObservableSettingsServiceCollectionExtensions
         return services;
     }
 
+    /// <summary>Registers a JSON settings file under <paramref name="fileKey"/> (System.Text.Json, per-owner).</summary>
+    public static IServiceCollection AddComposableSettingsJsonFile(
+        this IServiceCollection services, string fileKey, string filePath)
+    {
+        services.AddKeyedSingleton<IComponentSettingsProvider>(
+            fileKey, (_, _) => new JsonSettingsFile(filePath));
+        return services;
+    }
+
     /// <summary>Registers an already-built file under <paramref name="fileKey"/> (e.g. in-memory for tests).</summary>
     public static IServiceCollection AddComposableSettingsFile(
         this IServiceCollection services, string fileKey, IComponentSettingsProvider file)
