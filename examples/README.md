@@ -8,3 +8,6 @@
 
 For the core API and a from-scratch quick start, see the
 [package README](../README.md).
+
+For persistence evolution (codec vs write strategy), see
+[docs/PERSISTENCE_EXTENSIBILITY.md](../docs/PERSISTENCE_EXTENSIBILITY.md).

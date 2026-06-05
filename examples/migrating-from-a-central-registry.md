@@ -5,6 +5,10 @@ hosts a job-runtime in-process) — from a hand-wired central settings layer to
 ComposableSettings. The same pattern applies to any app whose settings have grown
 into a "touch many files to add one setting" registry.
 
+> **As of 2026-06:** clock appearance uses **`clock.json`** (JSON file + `JsonSettingsFile`);
+> GUI alert/HDR uses **`gui.xml`** node `alert`; editor VMs use **`[SettingsVm]`** (not
+> `[SettingsConsumer]`). See actuator `SETTINGS_DECISIONS_LOG.md` (D10, D4/D5).
+
 ## Before: the central registry
 
 Adding **one** setting touched ~6 places:
@@ -64,24 +68,26 @@ public partial class ClockAppearanceSettings
 }
 ```
 
-### 2. Each owner registers its own file
+### 2. Each slice registers its own file (or node)
 
-The host owns `runtime.xml`; the GUI owns `gui.xml`. Neither references the other.
+Per-owner files stay separate (`runtime.xml` vs GUI files). Slices can also use
+**their own JSON file** when a whole document is simpler than an XML node:
 
 ```csharp
 // host composition root
 services.AddComposableSettingsFile("runtime", runtimeXmlPath);
 services.AddSettingsProvider<RuntimeSettings>("runtime", SettingsNodePath.Root("runtime"));
 
-// gui composition root (added only when the GUI is hosted)
+// gui — clock slice: dedicated JSON file (D10)
+services.AddComposableSettingsJsonFile("clock", clockJsonPath);
+services.AddSettingsProvider<ClockAppearanceSettings>("clock", SettingsNodePath.Root("clock"), TimeSpan.FromMilliseconds(250));
+
+// gui — alert slice: still in gui.xml under alert node
 services.AddComposableSettingsFile("gui", guiXmlPath);
-services.AddSettingsProvider<ClockAppearanceSettings>("gui", SettingsNodePath.Root("clock"));
-services.AddSettingsProvider<Chart2DSettings>("gui", SettingsNodePath.Root("chart2d"));
-// ...one per node
+services.AddSettingsProvider<GuiAlertSettings>("gui", SettingsNodePath.Root("alert"), TimeSpan.FromMilliseconds(250));
 ```
 
-This makes the GUI ⇄ tray switch safe: each process opens the file(s) it owns; the
-other owner's file is untouched.
+This keeps GUI ⇄ tray switch safe: each process opens the file(s) it owns.
 
 ### 3. The engine becomes a plain consumer
 
@@ -94,14 +100,21 @@ public sealed class ActuatorEngine(ISettingsProvider<RuntimeSettings> settings)
 }
 ```
 
-### 4. The UI binds directly
+### 4. The UI binds with `[SettingsVm]` (MVVM)
+
+Use **`[SettingsVm]`** when the ViewModel already derives from `ObservableObject`.
+Use **`[SettingsConsumer]`** only for plain partial classes without INPC.
 
 ```csharp
-[SettingsConsumer(typeof(ClockAppearanceSettings))]
-public partial class ClockSettingsViewModel
+[SettingsVm(typeof(ClockAppearanceSettings))]
+public partial class ClockSettingsViewModel : ObservableObject, IDisposable
 {
     public ClockSettingsViewModel(ISettingsProvider<ClockAppearanceSettings> settings)
-        => InitializeGeneratedSettings(settings);
+        => InitializeSettings(settings);
+
+    [SettingsProxy] public partial bool IsGlslEnabled { get; set; }
+
+    public void Dispose() => DisposeGeneratedSettings();
 }
 ```
 
@@ -111,22 +124,25 @@ public partial class ClockSettingsViewModel
 
 Editing the slider persists immediately (deep change → `PropertyChanged` →
 provider auto-persists). `LoadPreferences` / `ApplyXSettings` /
-`UpdateXAsync` all disappear.
+`UpdateXAsync` disappear for migrated slices.
+
+**Dashboard consuming two slices:** `ClockViewModel` uses `[SettingsVm]` for
+appearance and a **manual relay** for `GuiAlertSettings` (one `[SettingsVm]` per class).
+See actuator `SETTINGS_CLOCK_VM_REFACTOR_ALPHA.md`.
 
 ## Suggested order (incremental, each step builds & ships)
 
-1. Add `PackageReference Include="ComposableSettings"`; remove any in-repo settings
-   adapter/registry.
-2. Migrate **one** screen (e.g. Clock): model → `[SettingsModel]`, VM →
-   `[SettingsConsumer]`, register the `gui` file + node, bind directly. Verify
-   edit → persist → reload.
-3. Migrate the remaining screens one by one, deleting their `Update*Async` methods
-   and path constants as you go.
-4. Migrate the runtime owner: a `runtime.xml` file + `ISettingsProvider<RuntimeSettings>`;
-   the engine reads from the provider instead of the central state. Schedules /
-   packages become `ObservableCollection<...>` of `[SettingsModel]` items.
-5. Delete the central layer: the preferences service, the aggregate snapshot
-   record, the engine/control `Update*Async` ladder, the path constants.
+1. Add `PackageReference Include="ComposableSettings" Version="1.0.*"`; remove any in-repo
+   settings adapter/registry.
+2. Migrate **one vertical slice** (e.g. Clock): model → `[SettingsModel]`, editor VM →
+   `[SettingsVm]`, register file + provider, bind directly. Verify edit → persist → reload.
+3. Migrate remaining screens one by one; delete their `Update*Async` methods and path
+   constants as each slice lands.
+4. Migrate the runtime owner: `runtime.xml` + `ISettingsProvider<RuntimeSettings>`;
+   the engine reads from the provider. Schedules / packages → `ObservableCollection<...>`
+   of `[SettingsModel]` items.
+5. Delete the central layer: preferences service, aggregate snapshot, `Update*Async`
+   ladder, path constants.
 
 ## What stays in the runtime snapshot
 
@@ -134,3 +150,8 @@ Keep **derived/operational** state (e.g. the *effective* job schedule shown in t
 UI, run status, notifications) in your existing push-snapshot. Only **persisted
 intent** (the schedule override the user set) moves into settings. Settings are
 trustworthy state at rest; the snapshot is a derived view.
+
+## Related
+
+- [Package README](../README.md) — API reference
+- [Persistence extensibility](../docs/PERSISTENCE_EXTENSIBILITY.md) — format vs write strategy (D11)

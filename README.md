@@ -138,23 +138,53 @@ There is **no `Save`**: the provider subscribes to the instance's
 `PropertyChanged` and persists each change. Use the debounced registration
 overload to coalesce writes to the backing store without delaying `Current`.
 
-### 4. (UI) Consumers that bind, with zero stored state
+### 4. (UI) ViewModels — `[SettingsVm]` vs `[SettingsConsumer]`
 
-For ViewModels that bind a settings model, mark them `[SettingsConsumer(typeof(T))]`
-and call the generated `InitializeGeneratedSettings` from your own constructor:
+Pick the attribute by whether the class **already** implements `INotifyPropertyChanged`.
+
+| Attribute | When to use | Generated init | INPC |
+|-----------|-------------|----------------|------|
+| **`[SettingsVm(typeof(T))]`** | MVVM with CommunityToolkit `ObservableObject` (or any existing INPC) | `InitializeSettings(provider)` | Relays into your `OnPropertyChanged` |
+| **`[SettingsConsumer(typeof(T))]`** | Plain `partial` class with **no** INPC yet | `InitializeGeneratedSettings(provider)` | Generator **owns** INPC (CSP024 if you already have it) |
+
+**Recommended for Avalonia/WPF MVVM** — `[SettingsVm]`:
+
+```csharp
+[SettingsVm(typeof(ClockSettings))]
+public partial class ClockSettingsViewModel : ObservableObject, IDisposable
+{
+    public ClockSettingsViewModel(ISettingsProvider<ClockSettings> settings)
+        => InitializeSettings(settings);
+
+    [SettingsProxy] public partial bool IsGlslEnabled { get; set; }
+    // manual projection when UI type ≠ model type:
+    public string BaseColorHex
+    {
+        get => Settings.BaseColor;
+        set => Settings.BaseColor = value;
+    }
+
+    public void Dispose() => DisposeGeneratedSettings();
+}
+```
+
+Legacy / minimal hosts without an existing INPC base — `[SettingsConsumer]`:
 
 ```csharp
 [SettingsConsumer(typeof(ClockSettings))]
 public partial class ClockViewModel
 {
-    public ClockViewModel(ISettingsProvider<ClockSettings> settings /*, other deps */)
+    public ClockViewModel(ISettingsProvider<ClockSettings> settings)
         => InitializeGeneratedSettings(settings);
     // generated: `public ClockSettings Settings => provider.Current;` + INPC relay
 }
 ```
 
-Bind to `Settings.BaseColor`, `Settings.Glow.GlowIntensity`, … — edits flow
-straight through to disk, and external resets refresh the binding.
+Bind to `Settings.BaseColor`, `Settings.Glow.GlowIntensity`, or `[SettingsProxy]`
+properties — edits flow straight through to disk, and external resets refresh the binding.
+
+**One `[SettingsVm]` per class.** A dashboard that consumes multiple settings types
+uses one primary `[SettingsVm]` and manual relays for the rest (see actuator case study).
 
 ## Deep observability
 
@@ -174,8 +204,14 @@ This is wired by the generated constructor via `SettingsChangeTracking`
 
 `AddComposableSettingsFile(key, path)` uses the built-in `XmlSettingsFile`
 (human-readable XML, one file per owner). `AddComposableSettingsJsonFile(key, path)` uses
-`JsonSettingsFile` (System.Text.Json, full-rewrite per node). To plug a different backend,
-implement `IComponentSettingsProvider` and register it under a key:
+`JsonSettingsFile` (System.Text.Json, full-rewrite per node).
+
+**Format vs write strategy:** swapping XML/JSON/YAML is implementing
+`IComponentSettingsProvider` (format/codec). A future **surgical / byte-indexed** write path
+will be an **additive**, opt-in extension — the whole-object `Set` API stays the default.
+See [`docs/PERSISTENCE_EXTENSIBILITY.md`](docs/PERSISTENCE_EXTENSIBILITY.md).
+
+To plug a different backend, implement `IComponentSettingsProvider` and register it under a key:
 
 ```csharp
 public interface IComponentSettingsProvider
@@ -195,8 +231,8 @@ Node paths address a model within a file: `SettingsNodePath.Root("gui").Child("c
 | Generator | Trigger | Emits |
 |---|---|---|
 | `SettingsModelGenerator` | `[SettingsModel] partial class` | `INotifyPropertyChanged`, properties (scalar / collection / nested), and a constructor that tracks nested members |
-| `SettingsConsumerGenerator` | `[SettingsConsumer(typeof(T))] partial class` | `Settings` pass-through property + `InitializeGeneratedSettings(provider)` + INPC relay |
-| `ObservableSettingsGenerator` | `[SettingsVm(typeof(T))] partial class` (existing INPC) | `Settings` pass-through + `InitializeSettings(provider)` + relay into `OnPropertyChanged` + `[SettingsProxy]` bodies + `DisposeGeneratedSettings()` |
+| `SettingsConsumerGenerator` | `[SettingsConsumer(typeof(T))] partial class` (no INPC yet) | `Settings` pass-through + `InitializeGeneratedSettings(provider)` + generator-owned INPC |
+| `ObservableSettingsGenerator` | `[SettingsVm(typeof(T))] partial class` (existing INPC) | `Settings` pass-through + `InitializeSettings(provider)` + relay into `OnPropertyChanged` + `[SettingsProxy]` bodies + `DisposeGeneratedSettings()` — **preferred for MVVM** |
 
 ### Diagnostics
 
@@ -224,10 +260,12 @@ Node paths address a model within a file: `SettingsNodePath.Root("gui").Child("c
 - Settings models are POCOs with `[A-Za-z0-9_.-]+` node names; nested classes as
   the model itself are not supported.
 
-## Examples
+## Examples & design notes
 
 See [`examples/`](examples/):
 
 - [`examples/migrating-from-a-central-registry.md`](examples/migrating-from-a-central-registry.md)
-  — a step-by-step migration from a hand-wired central settings registry to
-  ComposableSettings (real-world case study).
+  — step-by-step migration from a hand-wired central settings registry (Actuator case study;
+  includes `clock.json`, `[SettingsVm]`, and multi-slice VMs).
+- [`docs/PERSISTENCE_EXTENSIBILITY.md`](docs/PERSISTENCE_EXTENSIBILITY.md)
+  — format (codec) vs write strategy; future surgical writes without breaking `Set<T>`.
