@@ -1,6 +1,6 @@
 # Document Settings Profile — design spec
 
-> **Status:** D1–D4 implemented · `[SettingsDraftVm]` generator = planned (D5)  
+> **Status:** D1–D4 implemented · D5 spec + runtime helpers · generator = next    
 > **Date:** 2026-06-29  
 > **Motivation:** apps like **NanoCommander** need a richer settings model than live
 > auto-persist slices — one user document, layered defaults, theme packs, and a
@@ -319,14 +319,16 @@ public sealed class SettingsEditingSession<TDocument> where TDocument : class, n
 Lives in `ComposableSettings.Document` — consumer ViewModels can use it or keep
 their own; NC can delete its copy after migration.
 
-### 7.2 Generator integration (future)
+### 7.2 Generator integration
 
 | Attribute | Profile | Behavior |
 |-----------|---------|----------|
 | `[SettingsVm]` | Composable | Binds to `ISettingsProvider<T>.Current` (live) |
 | `[SettingsDraftVm]` | Document | Binds to `SettingsEditingSession<T>` draft; Save calls `CommitAsync` |
 
-Not required for v1 — manual wiring like NC today is fine.
+Full D5 design: **[SETTINGS-DRAFT-VM.md](./SETTINGS-DRAFT-VM.md)** (API, nested `[SettingsProxy]`, NC migration map).
+
+Runtime helpers (D5a, no generator yet): `DraftMutation`, `SettingsDraftCommands`.
 
 ---
 
@@ -410,7 +412,7 @@ same `ISettingsDocumentStore<AppSettings>` — shared `settings.json` with GUI.
 | **D2** | `Layering` — policy + JSON merge (port `ThemePackSettingsMerger`) | themepack overlay merge | **done** |
 | **D3** | `Packs` — zip loader, cache, catalog, `AddComposableSettingsPacks` | `.nctheme` support | **done** |
 | **D4** | `ISettingsPackExporter`, `SettingsEditingSession<T>` helper | export + VM cleanup | **done** |
-| **D5** | `[SettingsDraftVm]` generator (optional) | less boilerplate in settings VMs |
+| **D5** | `[SettingsDraftVm]` generator (optional) | less boilerplate in settings VMs | **spec + D5a runtime** |
 | **D6** | NC migration spike — one module behind feature flag | validate in production schema |
 
 Each phase: tests in `ComposableSettings.Tests`, optional adapter test in NC.

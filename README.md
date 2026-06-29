@@ -68,6 +68,10 @@ services.AddComposableSettingsPackExporter<AppSettings>();
 
 See [docs/DOCUMENT-SETTINGS-PROFILE.md](docs/DOCUMENT-SETTINGS-PROFILE.md).
 
+**Document editor VMs (preview/commit):** `[SettingsDraftVm]` — spec in
+[docs/SETTINGS-DRAFT-VM.md](docs/SETTINGS-DRAFT-VM.md). Runtime helpers:
+`SettingsDraftCommands`, `DraftMutation`. Generator: planned (D5c).
+
 ## Quick start
 
 ### 1. Declare settings models
