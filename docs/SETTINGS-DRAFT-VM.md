@@ -1,6 +1,6 @@
 # D5 — `[SettingsDraftVm]` generator spec
 
-> **Status:** spec v1.0 (design) · generator not implemented yet  
+> **Status:** spec v1.0 · D5a runtime · **D5c generator implemented** · D5d analyzers = next  
 > **Depends on:** Document profile D1–D4 (`ISettingsDocumentStore`, `SettingsEditingSession`)  
 > **Motivation:** apps like **NanoCommander** and other rich MVVM desktops repeat the same
 > draft → preview → commit glue in every settings section ViewModel. D5 moves that glue
@@ -426,7 +426,7 @@ CSP040 may ship in D5 or D6 — documented here for completeness.
 |-----------|-------------|----------|
 | **D5a** | `SettingsDraftVmAttribute`, `SettingsDraftRootAttribute`, extend `SettingsProxyAttribute`, `DraftMutation`, `SettingsDraftCommands` | runtime API frozen |
 | **D5b** | `DocumentMemberPathResolver` + unit tests in Generator.Tests | path validation |
-| **D5c** | `SettingsDraftVmGenerator` — flat + nested paths, `InitializeSettingsDraft`, proxies, dispose | first consumer VM |
+| **D5c** | `SettingsDraftVmGenerator` — flat + nested paths, `InitializeSettingsDraft`, proxies, dispose | first consumer VM | **done** |
 | **D5d** | Analyzers CSP041, CSP042, CSP043, CSP044, CSP045 | safe adoption |
 | **D5e** | NC pilot: `TerminalSettingsViewModel` + doc in NC repo | prove ROI |
 

@@ -1,6 +1,6 @@
 # Document Settings Profile — design spec
 
-> **Status:** D1–D4 implemented · D5 spec + runtime helpers · generator = next    
+> **Status:** D1–D4 implemented · D5a + D5c done · D5d analyzers polish = next    
 > **Date:** 2026-06-29  
 > **Motivation:** apps like **NanoCommander** need a richer settings model than live
 > auto-persist slices — one user document, layered defaults, theme packs, and a
@@ -412,7 +412,7 @@ same `ISettingsDocumentStore<AppSettings>` — shared `settings.json` with GUI.
 | **D2** | `Layering` — policy + JSON merge (port `ThemePackSettingsMerger`) | themepack overlay merge | **done** |
 | **D3** | `Packs` — zip loader, cache, catalog, `AddComposableSettingsPacks` | `.nctheme` support | **done** |
 | **D4** | `ISettingsPackExporter`, `SettingsEditingSession<T>` helper | export + VM cleanup | **done** |
-| **D5** | `[SettingsDraftVm]` generator (optional) | less boilerplate in settings VMs | **spec + D5a runtime** |
+| **D5** | `[SettingsDraftVm]` generator (optional) | less boilerplate in settings VMs | **D5a runtime · D5c generator** |
 | **D6** | NC migration spike — one module behind feature flag | validate in production schema |
 
 Each phase: tests in `ComposableSettings.Tests`, optional adapter test in NC.

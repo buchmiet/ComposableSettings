@@ -88,6 +88,49 @@ public abstract class ObservableObjectStub : INotifyPropertyChanged
             userSources.Prepend(ObservableSettingsStubsSource).ToArray());
     }
 
+    protected const string SettingsDraftVmStubsSource = @"
+using System;
+using System.ComponentModel;
+
+namespace ComposableSettings;
+
+[AttributeUsage(AttributeTargets.Class)]
+public sealed class SettingsDraftVmAttribute : Attribute
+{
+    public SettingsDraftVmAttribute(Type documentType) { }
+}
+
+[AttributeUsage(AttributeTargets.Class)]
+public sealed class SettingsDraftRootAttribute : Attribute
+{
+    public SettingsDraftRootAttribute(string path) { }
+}
+
+[AttributeUsage(AttributeTargets.Property)]
+public sealed class SettingsProxyAttribute : Attribute
+{
+    public SettingsProxyAttribute() { }
+    public SettingsProxyAttribute(string memberPath) { }
+}
+
+public abstract class ObservableObjectStub : INotifyPropertyChanged
+{
+    public event PropertyChangedEventHandler? PropertyChanged;
+    protected void OnPropertyChanged(string propertyName)
+        => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+}
+";
+
+    protected (
+        ImmutableArray<Diagnostic> Diagnostics,
+        Dictionary<string, string> GeneratedSources) CompileAndRunSettingsDraftVmGenerator(params string[] userSources)
+    {
+        return BuildAndEmit(
+            [new SettingsDraftVmGenerator().AsSourceGenerator()],
+            ObservableStubsSource,
+            userSources.Prepend(SettingsDraftVmStubsSource).ToArray());
+    }
+
     protected const string BehaviorTestInfrastructureSource = @"
 using System;
 using System.ComponentModel;
