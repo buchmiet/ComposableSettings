@@ -269,3 +269,7 @@ See [`examples/`](examples/):
   includes `clock.json`, `[SettingsVm]`, and multi-slice VMs).
 - [`docs/PERSISTENCE_EXTENSIBILITY.md`](docs/PERSISTENCE_EXTENSIBILITY.md)
   — format (codec) vs write strategy; future surgical writes without breaking `Set<T>`.
+- [`docs/DOCUMENT-SETTINGS-PROFILE.md`](docs/DOCUMENT-SETTINGS-PROFILE.md)
+  — **Document profile** (design): single rich `settings.json`, preview/commit,
+  layered defaults, theme packs; same NuGet, opt-in `AddComposableSettingsPacks()` etc.
+  Reference consumer: NanoCommander.

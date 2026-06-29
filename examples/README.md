@@ -11,3 +11,7 @@ For the core API and a from-scratch quick start, see the
 
 For persistence evolution (codec vs write strategy), see
 [docs/PERSISTENCE_EXTENSIBILITY.md](../docs/PERSISTENCE_EXTENSIBILITY.md).
+
+For rich single-file apps (theme packs, preview/commit, layered defaults) — the
+**Document profile** (proposed, same NuGet, opt-in DI modules), see
+[docs/DOCUMENT-SETTINGS-PROFILE.md](../docs/DOCUMENT-SETTINGS-PROFILE.md).
