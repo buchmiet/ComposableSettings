@@ -62,6 +62,10 @@ public class ObservableSettingsGenerator : IIncrementalGenerator
         DiagnosticSeverity.Error,
         isEnabledByDefault: true);
 
+    private static readonly DiagnosticDescriptor ConflictsWithSettingsDraftVm = GeneratorDiagnostics.ConflictsWithSettingsDraftVm;
+
+    private static readonly DiagnosticDescriptor ProxyMustBePartial = GeneratorDiagnostics.ProxyMustBePartial;
+
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
         var candidates = context.SyntaxProvider
@@ -109,6 +113,15 @@ public class ObservableSettingsGenerator : IIncrementalGenerator
     {
         var symbol = candidate.Symbol;
 
+        if (symbol.HasAttribute(GeneratorConstants.SettingsDraftVmAttributeFullName))
+        {
+            context.ReportDiagnostic(Diagnostic.Create(
+                ConflictsWithSettingsDraftVm,
+                candidate.Syntax.Identifier.GetLocation(),
+                symbol.Name));
+            return;
+        }
+
         if (candidate.SettingsType is null)
         {
             context.ReportDiagnostic(Diagnostic.Create(MissingSettingsType, candidate.Syntax.Identifier.GetLocation(), symbol.Name));
@@ -135,6 +148,16 @@ public class ObservableSettingsGenerator : IIncrementalGenerator
         foreach (var proxy in candidate.Proxies)
         {
             var location = GetProxyDiagnosticLocation(proxy);
+
+            if (!proxy.IsPartialProperty())
+            {
+                context.ReportDiagnostic(Diagnostic.Create(
+                    ProxyMustBePartial,
+                    location,
+                    proxy.Name,
+                    candidate.Symbol.Name));
+                continue;
+            }
 
             if (!SettingsModelMemberResolver.TryResolveMemberType(settingsType, proxy.Name, out var settingsMemberType))
             {

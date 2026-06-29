@@ -67,6 +67,14 @@ internal static class SymbolExtensions
             .Any(declaration => declaration.Modifiers.Any(modifier => modifier.ValueText == "partial"));
     }
 
+    public static bool IsPartialProperty(this IPropertySymbol property)
+    {
+        return property.DeclaringSyntaxReferences
+            .Select(reference => reference.GetSyntax())
+            .OfType<PropertyDeclarationSyntax>()
+            .Any(declaration => declaration.Modifiers.Any(modifier => modifier.ValueText == "partial"));
+    }
+
     private static bool IsAttribute(AttributeData attribute, string attributeFullName)
     {
         return attribute.AttributeClass?.ToDisplayString() == attributeFullName;

@@ -32,13 +32,7 @@ public class SettingsDraftVmGenerator : IIncrementalGenerator
         DiagnosticSeverity.Error,
         isEnabledByDefault: true);
 
-    private static readonly DiagnosticDescriptor ConflictsWithSettingsVm = new(
-        "CSP041",
-        "SettingsVm and SettingsDraftVm cannot be combined",
-        "Class '{0}' cannot use both [SettingsVm] and [SettingsDraftVm]",
-        "ComposableSettings",
-        DiagnosticSeverity.Error,
-        isEnabledByDefault: true);
+    private static readonly DiagnosticDescriptor ConflictsWithSettingsVm = GeneratorDiagnostics.ConflictsWithSettingsDraftVm;
 
     private static readonly DiagnosticDescriptor ProxyPathMissing = new(
         "CSP042",
@@ -55,6 +49,8 @@ public class SettingsDraftVmGenerator : IIncrementalGenerator
         "ComposableSettings",
         DiagnosticSeverity.Error,
         isEnabledByDefault: true);
+
+    private static readonly DiagnosticDescriptor ProxyMustBePartial = GeneratorDiagnostics.ProxyMustBePartial;
 
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
@@ -153,6 +149,17 @@ public class SettingsDraftVmGenerator : IIncrementalGenerator
         foreach (var proxy in candidate.Proxies)
         {
             var location = GetProxyDiagnosticLocation(proxy);
+
+            if (!proxy.IsPartialProperty())
+            {
+                context.ReportDiagnostic(Diagnostic.Create(
+                    ProxyMustBePartial,
+                    location,
+                    proxy.Name,
+                    candidate.Symbol.Name));
+                continue;
+            }
+
             var memberPath = ResolveProxyMemberPath(proxy, candidate.DraftRootPath);
             if (!DocumentMemberPathResolver.TryResolvePath(documentType, memberPath, out var leafType, out var accessorSuffix))
             {

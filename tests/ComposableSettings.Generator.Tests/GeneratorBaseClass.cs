@@ -82,7 +82,8 @@ public abstract class ObservableObjectStub : INotifyPropertyChanged
         return BuildAndEmit(
             [
                 new SettingsModelGenerator().AsSourceGenerator(),
-                new ObservableSettingsGenerator().AsSourceGenerator()
+                new ObservableSettingsGenerator().AsSourceGenerator(),
+                new SettingsProxyValidationGenerator().AsSourceGenerator(),
             ],
             ObservableStubsSource,
             userSources.Prepend(ObservableSettingsStubsSource).ToArray());
@@ -126,7 +127,20 @@ public abstract class ObservableObjectStub : INotifyPropertyChanged
         Dictionary<string, string> GeneratedSources) CompileAndRunSettingsDraftVmGenerator(params string[] userSources)
     {
         return BuildAndEmit(
-            [new SettingsDraftVmGenerator().AsSourceGenerator()],
+            [
+                new SettingsDraftVmGenerator().AsSourceGenerator(),
+                new SettingsProxyValidationGenerator().AsSourceGenerator(),
+            ],
+            ObservableStubsSource,
+            userSources.Prepend(SettingsDraftVmStubsSource).ToArray());
+    }
+
+    protected (
+        ImmutableArray<Diagnostic> Diagnostics,
+        Dictionary<string, string> GeneratedSources) CompileAndRunSettingsProxyValidation(params string[] userSources)
+    {
+        return BuildAndEmit(
+            [new SettingsProxyValidationGenerator().AsSourceGenerator()],
             ObservableStubsSource,
             userSources.Prepend(SettingsDraftVmStubsSource).ToArray());
     }

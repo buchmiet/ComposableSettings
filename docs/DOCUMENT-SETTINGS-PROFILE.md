@@ -1,6 +1,6 @@
 # Document Settings Profile — design spec
 
-> **Status:** D1–D4 implemented · D5a + D5c done · D5d analyzers polish = next    
+> **Status:** D1–D4 implemented · D5a–D5d done · D5e NC pilot = next    
 > **Date:** 2026-06-29  
 > **Motivation:** apps like **NanoCommander** need a richer settings model than live
 > auto-persist slices — one user document, layered defaults, theme packs, and a
