@@ -39,6 +39,27 @@ Versioning follows CI run numbers (`1.0.{run}`) on pushes to `main` (see
 pin build numbers in actuator csproj. Cross-repo workflow:
 [`actuator/docs/COMPOSABLESETTINGS_PACKAGE_WORKFLOW.md`](../actuator/docs/COMPOSABLESETTINGS_PACKAGE_WORKFLOW.md).
 
+## Document profile (preview/commit)
+
+For a single rich `settings.json` with factory defaults and a settings editor
+that should **not** persist every slider tick:
+
+```csharp
+services.AddComposableSettingsDocument<AppSettings>(o =>
+{
+    o.FilePath = path;
+    o.DefaultsFactory = () => new AppSettings();
+    o.AutosaveDelay = TimeSpan.FromMilliseconds(750);
+});
+```
+
+Use `store.Effective` for reads, `store.Preview(draft)` while editing,
+`await store.CommitAsync(draft)` + `await store.FlushAsync()` on Save.
+
+Layering (`AddComposableSettingsLayering`) and packs (`AddComposableSettingsPacks`) — planned; see spec.
+
+See [docs/DOCUMENT-SETTINGS-PROFILE.md](docs/DOCUMENT-SETTINGS-PROFILE.md).
+
 ## Quick start
 
 ### 1. Declare settings models

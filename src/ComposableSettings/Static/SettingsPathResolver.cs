@@ -36,9 +36,11 @@ public static class SettingsPathResolver
         if (OperatingSystem.IsWindows())
             return Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
 
-        return OperatingSystem.IsMacOS()
-            ? Path.Combine(Path.DirectorySeparatorChar.ToString(), "Library", "Application Support")
-            : Path.Combine(Path.DirectorySeparatorChar.ToString(), "etc");
+        if (OperatingSystem.IsMacOS())
+            return Path.Combine(Path.DirectorySeparatorChar.ToString(), "Library", "Application Support");
+
+        // Linux / Unix: XDG config (~/.config on .NET via ApplicationData).
+        return Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
     }
 
     public static string ResolveFilePath(SettingsFileOptions options)
