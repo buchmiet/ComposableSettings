@@ -1,3 +1,5 @@
+using ComposableSettings.Layering;
+using ComposableSettings.Packs;
 using ComposableSettings.Stores;
 using IDebouncer = Debouncer.Sharp.IDebouncer;
 using SharpDebouncer = Debouncer.Sharp.Debouncer;
@@ -13,6 +15,9 @@ public sealed class SettingsDocumentStore<TDocument> : ISettingsDocumentStore<TD
 {
     private readonly SettingsDocumentOptions<TDocument> _options;
     private readonly ISettingsDocumentSerializer<TDocument> _serializer;
+    private readonly ISettingsLayerMerger<TDocument>? _merger;
+    private readonly ISettingsPackCatalog<TDocument>? _packCatalog;
+    private readonly Func<TDocument, string?>? _packIdResolver;
     private readonly IDebouncer _commitDebouncer;
     private readonly object _gate = new();
     private TDocument _userLayer = new();
@@ -21,6 +26,15 @@ public sealed class SettingsDocumentStore<TDocument> : ISettingsDocumentStore<TD
     private bool _disposed;
 
     public SettingsDocumentStore(SettingsDocumentOptions<TDocument> options)
+        : this(options, merger: null, packCatalog: null, packIdResolver: null)
+    {
+    }
+
+    internal SettingsDocumentStore(
+        SettingsDocumentOptions<TDocument> options,
+        ISettingsLayerMerger<TDocument>? merger,
+        ISettingsPackCatalog<TDocument>? packCatalog,
+        Func<TDocument, string?>? packIdResolver)
     {
         _options = options ?? throw new ArgumentNullException(nameof(options));
         if (string.IsNullOrWhiteSpace(_options.FilePath))
@@ -30,6 +44,9 @@ public sealed class SettingsDocumentStore<TDocument> : ISettingsDocumentStore<TD
         if (_options.AutosaveDelay <= TimeSpan.Zero)
             throw new ArgumentOutOfRangeException(nameof(options), "AutosaveDelay must be greater than zero.");
 
+        _merger = merger;
+        _packCatalog = packCatalog;
+        _packIdResolver = packIdResolver;
         _serializer = _options.Serializer ?? new JsonSettingsDocumentSerializer<TDocument>();
         _commitDebouncer = new SharpDebouncer(_options.AutosaveDelay);
         (_userLayer, _effective) = LoadInitialState();
@@ -131,6 +148,15 @@ public sealed class SettingsDocumentStore<TDocument> : ISettingsDocumentStore<TD
         return Task.CompletedTask;
     }
 
+    internal void ReloadFromPackCache()
+    {
+        lock (_gate)
+        {
+            RebuildEffectiveLocked();
+            EffectiveChanged?.Invoke(this, EventArgs.Empty);
+        }
+    }
+
     public void Dispose()
     {
         if (_disposed)
@@ -153,7 +179,7 @@ public sealed class SettingsDocumentStore<TDocument> : ISettingsDocumentStore<TD
         var defaults = _options.DefaultsFactory();
         var user = ReadUserLayerFromDisk(defaults);
         _options.Normalize?.Invoke(user);
-        var effective = JsonDocumentMerge.MergeOverlay(defaults, user);
+        var effective = BuildEffective(defaults, user);
         return (user, effective);
     }
 
@@ -176,13 +202,40 @@ public sealed class SettingsDocumentStore<TDocument> : ISettingsDocumentStore<TD
     private void RebuildEffectiveLocked()
     {
         var defaults = _options.DefaultsFactory();
-        if (IsEffectivelyEmptyUserLayer(_userLayer))
+        _effective = BuildEffective(defaults, _userLayer);
+    }
+
+    private TDocument BuildEffective(TDocument defaults, TDocument userLayer)
+    {
+        var packOverlay = ResolvePackOverlay(defaults, userLayer);
+
+        if (_merger is not null)
+            return _merger.Merge(defaults, packOverlay, userLayer);
+
+        if (IsEffectivelyEmptyUserLayer(userLayer))
         {
-            _effective = _serializer.Clone(defaults);
-            return;
+            return packOverlay is null
+                ? _serializer.Clone(defaults)
+                : JsonDocumentMerge.MergePackOverlay(defaults, packOverlay);
         }
 
-        _effective = JsonDocumentMerge.MergeOverlay(defaults, _userLayer);
+        var withPack = packOverlay is null
+            ? defaults
+            : JsonDocumentMerge.MergePackOverlay(defaults, packOverlay);
+
+        return JsonDocumentMerge.MergeOverlay(withPack, userLayer);
+    }
+
+    private TDocument? ResolvePackOverlay(TDocument defaults, TDocument userLayer)
+    {
+        if (_packCatalog is null || _packIdResolver is null)
+            return null;
+
+        var packId = _packIdResolver(userLayer);
+        if (string.IsNullOrWhiteSpace(packId))
+            return null;
+
+        return _packCatalog.TryLoadOverlay(packId, defaults);
     }
 
     private bool IsEffectivelyEmptyUserLayer(TDocument user)

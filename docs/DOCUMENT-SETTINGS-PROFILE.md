@@ -1,6 +1,6 @@
 # Document Settings Profile — design spec
 
-> **Status:** D1 implemented · Layering / Packs = planned (opt-in DI modules)  
+> **Status:** D1–D4 implemented · `[SettingsDraftVm]` generator = planned (D5)  
 > **Date:** 2026-06-29  
 > **Motivation:** apps like **NanoCommander** need a richer settings model than live
 > auto-persist slices — one user document, layered defaults, theme packs, and a
@@ -407,9 +407,9 @@ same `ISettingsDocumentStore<AppSettings>` — shared `settings.json` with GUI.
 | Phase | Deliverable | NC unblocks |
 |-------|-------------|-------------|
 | **D1** | `ISettingsDocumentStore`, atomic `JsonDocumentFile`, `AddComposableSettingsDocument`, XDG path fix | preview/commit without packs | **done** (v1.1) |
-| **D2** | `Layering` — policy + JSON merge (port `ThemePackSettingsMerger`) | themepack overlay merge |
-| **D3** | `Packs` — zip loader, cache, catalog, `AddComposableSettingsPacks` | `.nctheme` support |
-| **D4** | `ISettingsPackExporter`, `SettingsEditingSession<T>` helper | export + VM cleanup |
+| **D2** | `Layering` — policy + JSON merge (port `ThemePackSettingsMerger`) | themepack overlay merge | **done** |
+| **D3** | `Packs` — zip loader, cache, catalog, `AddComposableSettingsPacks` | `.nctheme` support | **done** |
+| **D4** | `ISettingsPackExporter`, `SettingsEditingSession<T>` helper | export + VM cleanup | **done** |
 | **D5** | `[SettingsDraftVm]` generator (optional) | less boilerplate in settings VMs |
 | **D6** | NC migration spike — one module behind feature flag | validate in production schema |
 

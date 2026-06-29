@@ -56,7 +56,15 @@ services.AddComposableSettingsDocument<AppSettings>(o =>
 Use `store.Effective` for reads, `store.Preview(draft)` while editing,
 `await store.CommitAsync(draft)` + `await store.FlushAsync()` on Save.
 
-Layering (`AddComposableSettingsLayering`) and packs (`AddComposableSettingsPacks`) — planned; see spec.
+Layering (`AddComposableSettingsLayering`), packs (`AddComposableSettingsPacks`), export
+(`AddComposableSettingsPackExporter`), and `SettingsEditingSession<T>` are available — see spec.
+
+```csharp
+services.AddComposableSettingsDocument<AppSettings>(o => { ... });
+services.AddComposableSettingsLayering<AppSettings>(policy => { ... });
+services.AddComposableSettingsPacks<AppSettings>(o => { ... }, doc => doc.ThemePack);
+services.AddComposableSettingsPackExporter<AppSettings>();
+```
 
 See [docs/DOCUMENT-SETTINGS-PROFILE.md](docs/DOCUMENT-SETTINGS-PROFILE.md).
 
