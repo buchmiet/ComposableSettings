@@ -1,7 +1,7 @@
 namespace ComposableSettings;
 
 /// <summary>Options for <see cref="SettingsProvider{TSettings}"/>.</summary>
-public sealed class SettingsProviderOptions
+public  class SettingsProviderOptions
 {
     public static SettingsProviderOptions Default { get; } = new();
 

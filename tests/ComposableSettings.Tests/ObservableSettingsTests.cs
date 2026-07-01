@@ -5,9 +5,9 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace ComposableSettings.Tests;
 
-public sealed class ObservableSettingsTests
+public  class ObservableSettingsTests
 {
-    private sealed class CountingComponentSettingsProvider : IComponentSettingsProvider
+    private  class CountingComponentSettingsProvider : IComponentSettingsProvider
     {
         private readonly object _gate = new();
         private object? _lastValue;
@@ -43,7 +43,7 @@ public sealed class ObservableSettingsTests
         }
     }
 
-    public sealed class RuntimeTestSettings : ObservableSettings
+    public  class RuntimeTestSettings : ObservableSettings
     {
         private string _pluginsFolder = "./plugins";
         private int _maxConcurrentRuns = 2;
@@ -52,7 +52,7 @@ public sealed class ObservableSettingsTests
         public int MaxConcurrentRuns { get => _maxConcurrentRuns; set => SetProperty(ref _maxConcurrentRuns, value); }
     }
 
-    public sealed class GuiTestSettings : ObservableSettings
+    public  class GuiTestSettings : ObservableSettings
     {
         private double _brightness = 0.8;
         public double Brightness { get => _brightness; set => SetProperty(ref _brightness, value); }
@@ -62,7 +62,7 @@ public sealed class ObservableSettingsTests
     // collections via SettingsChangeTracking.TrackCollection; nested objects tracked
     // from the ctor with a re-tracking setter.
 
-    public sealed class PaletteTestSettings : ObservableSettings
+    public  class PaletteTestSettings : ObservableSettings
     {
         public ObservableCollection<string> Colors { get; } = new() { "#a", "#b" };
 
@@ -70,7 +70,7 @@ public sealed class ObservableSettingsTests
             => SettingsChangeTracking.TrackCollection(Colors, () => RaisePropertyChanged(nameof(Colors)));
     }
 
-    public sealed class ScheduleItem : ObservableSettings
+    public  class ScheduleItem : ObservableSettings
     {
         private string _jobId = string.Empty;
         private string _cron = string.Empty;
@@ -79,7 +79,7 @@ public sealed class ObservableSettingsTests
         public string Cron { get => _cron; set => SetProperty(ref _cron, value); }
     }
 
-    public sealed class SchedulesTestSettings : ObservableSettings
+    public  class SchedulesTestSettings : ObservableSettings
     {
         public ObservableCollection<ScheduleItem> Schedules { get; } = new();
 
@@ -87,13 +87,13 @@ public sealed class ObservableSettingsTests
             => SettingsChangeTracking.TrackCollection(Schedules, () => RaisePropertyChanged(nameof(Schedules)));
     }
 
-    public sealed class ClockChildSettings : ObservableSettings
+    public  class ClockChildSettings : ObservableSettings
     {
         private double _brightness = 0.8;
         public double Brightness { get => _brightness; set => SetProperty(ref _brightness, value); }
     }
 
-    public sealed class AppearanceTestSettings : ObservableSettings
+    public  class AppearanceTestSettings : ObservableSettings
     {
         private ClockChildSettings _clock = new();
 

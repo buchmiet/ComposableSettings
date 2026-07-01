@@ -5,16 +5,16 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace ComposableSettings.Tests;
 
-public sealed class DocumentSettingsStoreTests
+public  class DocumentSettingsStoreTests
 {
-    public sealed class TestDocument
+    public  class TestDocument
     {
         public string ThemeId { get; set; } = "default";
         public int PanelWidth { get; set; }
         public NestedSection Layout { get; set; } = new();
     }
 
-    public sealed class NestedSection
+    public  class NestedSection
     {
         public double Opacity { get; set; } = 1.0;
     }

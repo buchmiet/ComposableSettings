@@ -10,7 +10,7 @@ namespace ComposableSettings.Document;
 /// Default <see cref="ISettingsDocumentStore{TDocument}"/>: user layer on disk,
 /// effective = defaults merged with user, preview without persist, debounced commit.
 /// </summary>
-public sealed class SettingsDocumentStore<TDocument> : ISettingsDocumentStore<TDocument>, IDisposable
+public  class SettingsDocumentStore<TDocument> : ISettingsDocumentStore<TDocument>, IDisposable
     where TDocument : class, new()
 {
     private readonly SettingsDocumentOptions<TDocument> _options;

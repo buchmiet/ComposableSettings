@@ -6,7 +6,7 @@ namespace IndentedStringBuilder;
 /// <summary>
 ///  Lekki wrapper nad <see cref="StringBuilder"/> zapewniający kontrolę wcięć.
 /// </summary>
-public sealed class IndentedStringBuilder(string indentUnit = "    ")
+public  class IndentedStringBuilder(string indentUnit = "    ")
 {
     private readonly StringBuilder _sb = new();
     private int _level;
@@ -74,7 +74,7 @@ public sealed class IndentedStringBuilder(string indentUnit = "    ")
 
     private void Pop() => _level--;
 
-    private sealed class PopIndent(IndentedStringBuilder parent) : IDisposable
+    private  class PopIndent(IndentedStringBuilder parent) : IDisposable
     {
         public void Dispose() => parent.Pop();
     }

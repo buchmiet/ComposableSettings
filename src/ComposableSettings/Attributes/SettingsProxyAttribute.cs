@@ -11,7 +11,7 @@ namespace ComposableSettings;
 /// <see cref="SettingsDraftRootAttribute"/> for nested sections.
 /// </summary>
 [AttributeUsage(AttributeTargets.Property)]
-public sealed class SettingsProxyAttribute : Attribute
+public  class SettingsProxyAttribute : Attribute
 {
     /// <summary>
     /// Dot-path from document root, or relative to <see cref="SettingsDraftRootAttribute"/>.

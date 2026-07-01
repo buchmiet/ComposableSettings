@@ -3,7 +3,7 @@ using ComposableSettings.Document;
 
 namespace ComposableSettings.Packs;
 
-public sealed class SettingsPackLoader : ISettingsPackLoader
+public  class SettingsPackLoader : ISettingsPackLoader
 {
     private static readonly JsonSerializerOptions ManifestJsonOptions = new()
     {

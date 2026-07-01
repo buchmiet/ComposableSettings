@@ -350,7 +350,7 @@ public class SettingsDraftVmGenerator : IIncrementalGenerator
         }
     }
 
-    private sealed class Candidate(
+    private  class Candidate(
         ClassDeclarationSyntax syntax,
         INamedTypeSymbol symbol,
         INamedTypeSymbol? documentType,
@@ -366,7 +366,7 @@ public class SettingsDraftVmGenerator : IIncrementalGenerator
         public bool HasSettingsVmConflict { get; } = hasSettingsVmConflict;
     }
 
-    private sealed class ProxyInfo(
+    private  class ProxyInfo(
         string name,
         string type,
         string memberPath,

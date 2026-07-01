@@ -21,7 +21,7 @@ namespace ComposableSettings;
 /// <c>OnPropertyChanged(string)</c> (satisfied by deriving from ObservableObject).
 /// </summary>
 [AttributeUsage(AttributeTargets.Class)]
-public sealed class SettingsVmAttribute(Type settingsType) : Attribute
+public  class SettingsVmAttribute(Type settingsType) : Attribute
 {
     public Type SettingsType { get; } = settingsType;
 }

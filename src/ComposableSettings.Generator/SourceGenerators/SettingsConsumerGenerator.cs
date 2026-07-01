@@ -157,7 +157,7 @@ public class SettingsConsumerGenerator : IIncrementalGenerator
         return sb.ToString();
     }
 
-    private sealed class Candidate(ClassDeclarationSyntax syntax, INamedTypeSymbol symbol, INamedTypeSymbol? settingsType)
+    private  class Candidate(ClassDeclarationSyntax syntax, INamedTypeSymbol symbol, INamedTypeSymbol? settingsType)
     {
         public ClassDeclarationSyntax Syntax { get; } = syntax;
         public INamedTypeSymbol Symbol { get; } = symbol;

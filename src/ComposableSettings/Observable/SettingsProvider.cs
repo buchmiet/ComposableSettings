@@ -16,7 +16,7 @@ namespace ComposableSettings;
 /// Persistence debounce is opt-in: the live instance changes immediately, while
 /// writes to the backing store can be coalesced with <see cref="SettingsProviderOptions"/>.
 /// </summary>
-public sealed class SettingsProvider<TSettings> : ISettingsProvider<TSettings>, IDisposable
+public  class SettingsProvider<TSettings> : ISettingsProvider<TSettings>, IDisposable
     where TSettings : class, INotifyPropertyChanged, new()
 {
     private readonly IComponentSettingsProvider _file;

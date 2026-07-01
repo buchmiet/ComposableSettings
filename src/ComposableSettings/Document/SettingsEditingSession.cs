@@ -3,7 +3,7 @@ namespace ComposableSettings.Document;
 /// <summary>
 /// Draft/baseline helper for settings editors (preview/commit workflow).
 /// </summary>
-public sealed class SettingsEditingSession<TDocument>
+public  class SettingsEditingSession<TDocument>
     where TDocument : class, new()
 {
     private readonly ISettingsDocumentSerializer<TDocument> _serializer;

@@ -5,7 +5,7 @@ using Xunit;
 
 namespace ComposableSettings.Generator.Tests;
 
-public sealed class DocumentMemberPathResolverTests
+public  class DocumentMemberPathResolverTests
 {
     [Fact]
     public void Resolves_nested_path_on_poco_document()

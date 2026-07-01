@@ -1,6 +1,6 @@
 namespace ComposableSettings.Packs;
 
-public sealed class SettingsPackManifest
+public  class SettingsPackManifest
 {
     public const int SupportedSchemaVersion = 1;
 

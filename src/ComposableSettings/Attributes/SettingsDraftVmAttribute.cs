@@ -8,7 +8,7 @@ namespace ComposableSettings;
 /// <see cref="SettingsVmAttribute"/> for the Composable (live-edit) profile.
 /// </summary>
 [AttributeUsage(AttributeTargets.Class)]
-public sealed class SettingsDraftVmAttribute(Type documentType) : Attribute
+public  class SettingsDraftVmAttribute(Type documentType) : Attribute
 {
     public Type DocumentType { get; } = documentType;
 }

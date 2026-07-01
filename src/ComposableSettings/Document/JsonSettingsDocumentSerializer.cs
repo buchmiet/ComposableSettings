@@ -4,7 +4,7 @@ using System.Text.Json.Serialization;
 namespace ComposableSettings.Document;
 
 /// <summary>System.Text.Json implementation with tolerant deserialize.</summary>
-public sealed class JsonSettingsDocumentSerializer<TDocument> : ISettingsDocumentSerializer<TDocument>
+public  class JsonSettingsDocumentSerializer<TDocument> : ISettingsDocumentSerializer<TDocument>
     where TDocument : class, new()
 {
     private static readonly JsonSerializerOptions SerializerOptions = new()

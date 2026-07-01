@@ -11,7 +11,7 @@ namespace ComposableSettings;
 /// constructor. The class must be <c>partial</c> and must NOT already implement INPC.
 /// </summary>
 [AttributeUsage(AttributeTargets.Class)]
-public sealed class SettingsConsumerAttribute(Type settingsType) : Attribute
+public  class SettingsConsumerAttribute(Type settingsType) : Attribute
 {
     public Type SettingsType { get; } = settingsType;
 }

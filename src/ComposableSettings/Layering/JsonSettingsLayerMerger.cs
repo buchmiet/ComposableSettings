@@ -4,7 +4,7 @@ using ComposableSettings.Document;
 
 namespace ComposableSettings.Layering;
 
-public sealed class JsonSettingsLayerMerger<TDocument> : ISettingsLayerMerger<TDocument>
+public  class JsonSettingsLayerMerger<TDocument> : ISettingsLayerMerger<TDocument>
     where TDocument : class, new()
 {
     private static readonly JsonSerializerOptions JsonOptions = new()

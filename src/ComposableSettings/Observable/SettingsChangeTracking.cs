@@ -44,7 +44,7 @@ public static class SettingsChangeTracking
         _ = new CollectionTracker(collection, onChanged);
     }
 
-    private sealed class CollectionTracker
+    private  class CollectionTracker
     {
         private readonly INotifyCollectionChanged _collection;
         private readonly Action _onChanged;

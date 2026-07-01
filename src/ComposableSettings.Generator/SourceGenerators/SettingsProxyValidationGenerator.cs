@@ -121,14 +121,14 @@ public class SettingsProxyValidationGenerator : IIncrementalGenerator
         }
     }
 
-    private sealed class OrphanProxy(Location location, string className, string propertyName)
+    private  class OrphanProxy(Location location, string className, string propertyName)
     {
         public Location Location { get; } = location;
         public string ClassName { get; } = className;
         public string PropertyName { get; } = propertyName;
     }
 
-    private sealed class OrphanDraftRoot(Location location, string className)
+    private  class OrphanDraftRoot(Location location, string className)
     {
         public Location Location { get; } = location;
         public string ClassName { get; } = className;

@@ -146,7 +146,7 @@ services.AddSettingsProvider<ClockSettings>(
 Inject `ISettingsProvider<T>` and read/write `Current`:
 
 ```csharp
-public sealed class Engine(ISettingsProvider<RuntimeSettings> settings)
+public  class Engine(ISettingsProvider<RuntimeSettings> settings)
 {
     public void Run()
     {

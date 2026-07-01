@@ -7,7 +7,7 @@ namespace ComposableSettings;
 /// <c>Draft.Layout.Terminal.Padding.Horizontal</c>.
 /// </summary>
 [AttributeUsage(AttributeTargets.Class)]
-public sealed class SettingsDraftRootAttribute(string path) : Attribute
+public  class SettingsDraftRootAttribute(string path) : Attribute
 {
     public string Path { get; } = path;
 }

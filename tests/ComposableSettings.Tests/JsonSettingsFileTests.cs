@@ -4,20 +4,20 @@ using ComposableSettings.Stores;
 
 namespace ComposableSettings.Tests;
 
-public sealed class JsonSettingsFileTests
+public  class JsonSettingsFileTests
 {
-    public sealed class PaletteTestSettings
+    public  class PaletteTestSettings
     {
         public ObservableCollection<string> Colors { get; } = new() { "#a", "#b" };
         public int MaxColors { get; set; } = 8;
     }
 
-    public sealed class NestedChildSettings
+    public  class NestedChildSettings
     {
         public double Brightness { get; set; } = 0.8;
     }
 
-    public sealed class ParentTestSettings
+    public  class ParentTestSettings
     {
         public string Name { get; set; } = "default";
         public NestedChildSettings Child { get; set; } = new();

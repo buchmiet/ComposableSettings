@@ -1,6 +1,6 @@
 namespace ComposableSettings.Document;
 
-public sealed class SettingsDocumentOptionsBuilder<TDocument>
+public  class SettingsDocumentOptionsBuilder<TDocument>
     where TDocument : class, new()
 {
     public string FilePath { get; set; } = string.Empty;

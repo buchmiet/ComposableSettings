@@ -311,7 +311,7 @@ public class ObservableSettingsGenerator : IIncrementalGenerator
         return sb.ToString();
     }
 
-    private sealed class Candidate(
+    private  class Candidate(
         ClassDeclarationSyntax syntax,
         INamedTypeSymbol symbol,
         INamedTypeSymbol? settingsType,
@@ -323,7 +323,7 @@ public class ObservableSettingsGenerator : IIncrementalGenerator
         public List<IPropertySymbol> Proxies { get; } = proxies;
     }
 
-    private sealed class ProxyInfo(string name, string type)
+    private  class ProxyInfo(string name, string type)
     {
         public string Name { get; } = name;
         public string Type { get; } = type;

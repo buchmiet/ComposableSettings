@@ -2,7 +2,7 @@ using ComposableSettings.Document;
 
 namespace ComposableSettings.Packs;
 
-public sealed class SettingsPackCatalog<TDocument> : ISettingsPackCatalog<TDocument>
+public  class SettingsPackCatalog<TDocument> : ISettingsPackCatalog<TDocument>
     where TDocument : class, new()
 {
     private readonly SettingsPackOptions _options;

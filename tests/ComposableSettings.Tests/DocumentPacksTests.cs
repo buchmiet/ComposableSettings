@@ -4,9 +4,9 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace ComposableSettings.Tests;
 
-public sealed class DocumentPacksTests
+public  class DocumentPacksTests
 {
-    public sealed class PackDocument
+    public  class PackDocument
     {
         public string ThemeId { get; set; } = "default";
         public string PackId { get; set; } = "";
@@ -14,7 +14,7 @@ public sealed class DocumentPacksTests
         public NestedSection Layout { get; set; } = new();
     }
 
-    public sealed class NestedSection
+    public  class NestedSection
     {
         public double Opacity { get; set; } = 1.0;
     }

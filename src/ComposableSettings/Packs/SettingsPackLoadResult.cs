@@ -1,6 +1,6 @@
 namespace ComposableSettings.Packs;
 
-public sealed class SettingsPackLoadResult
+public  class SettingsPackLoadResult
 {
     public required string RootDirectory { get; init; }
 

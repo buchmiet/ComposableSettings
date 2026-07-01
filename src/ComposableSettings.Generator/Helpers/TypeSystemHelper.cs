@@ -10,7 +10,7 @@ namespace ComposableSettings.Generator.Helpers;
 /// <summary>
 /// Provides centralized, testable operations for type system manipulation in code generation.
 /// </summary>
-internal sealed class TypeSystemHelper
+internal  class TypeSystemHelper
 {
     private const string GlobalNamespacePrefix = "global::";
 
@@ -21,7 +21,7 @@ internal sealed class TypeSystemHelper
         "event", "explicit", "extern", "false", "finally", "fixed", "float", "for", "foreach", "goto",
         "if", "implicit", "in", "int", "interface", "internal", "is", "lock", "long", "namespace",
         "new", "null", "object", "operator", "out", "override", "params", "private", "protected", "public",
-        "readonly", "ref", "return", "sbyte", "sealed", "short", "sizeof", "stackalloc", "static", "string",
+        "readonly", "ref", "return", "sbyte", "", "short", "sizeof", "stackalloc", "static", "string",
         "struct", "switch", "this", "throw", "true", "try", "typeof", "uint", "ulong", "unchecked",
         "unsafe", "ushort", "using", "virtual", "void", "volatile", "while", "value", "async", "await",
         "dynamic", "partial", "yield", "var", "when", "where", "add", "remove", "get", "set", "global",

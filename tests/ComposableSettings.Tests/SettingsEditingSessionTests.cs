@@ -2,9 +2,9 @@ using ComposableSettings.Document;
 
 namespace ComposableSettings.Tests;
 
-public sealed class SettingsEditingSessionTests
+public  class SettingsEditingSessionTests
 {
-    public sealed class EditDocument
+    public  class EditDocument
     {
         public string ThemeId { get; set; } = "default";
         public int Width { get; set; }

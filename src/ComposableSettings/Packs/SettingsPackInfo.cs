@@ -1,6 +1,6 @@
 namespace ComposableSettings.Packs;
 
-public sealed class SettingsPackInfo
+public  class SettingsPackInfo
 {
     public required string Id { get; init; }
 

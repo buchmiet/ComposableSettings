@@ -9,4 +9,4 @@ namespace ComposableSettings;
 /// The class must be <c>partial</c> and must NOT already implement INPC.
 /// </summary>
 [AttributeUsage(AttributeTargets.Class)]
-public sealed class SettingsModelAttribute : Attribute;
+public  class SettingsModelAttribute : Attribute;

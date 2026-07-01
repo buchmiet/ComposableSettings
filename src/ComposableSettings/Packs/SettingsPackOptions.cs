@@ -1,6 +1,6 @@
 namespace ComposableSettings.Packs;
 
-public sealed class SettingsPackOptions
+public  class SettingsPackOptions
 {
     public string PacksDirectory { get; set; } = "";
 

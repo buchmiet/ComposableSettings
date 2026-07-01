@@ -3,7 +3,7 @@ using ComposableSettings.Document;
 
 namespace ComposableSettings.Packs;
 
-public sealed class SettingsPackExporter<TDocument> : ISettingsPackExporter<TDocument>
+public  class SettingsPackExporter<TDocument> : ISettingsPackExporter<TDocument>
     where TDocument : class, new()
 {
     private static readonly JsonSerializerOptions ManifestJsonOptions = new() { WriteIndented = true };

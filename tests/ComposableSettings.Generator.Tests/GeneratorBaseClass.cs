@@ -57,13 +57,13 @@ using System.ComponentModel;
 namespace ComposableSettings;
 
 [AttributeUsage(AttributeTargets.Class)]
-public sealed class SettingsVmAttribute : Attribute
+public  class SettingsVmAttribute : Attribute
 {
     public SettingsVmAttribute(Type settingsType) { }
 }
 
 [AttributeUsage(AttributeTargets.Property)]
-public sealed class SettingsProxyAttribute : Attribute { }
+public  class SettingsProxyAttribute : Attribute { }
 
 public abstract class ObservableObjectStub : INotifyPropertyChanged
 {
@@ -96,19 +96,19 @@ using System.ComponentModel;
 namespace ComposableSettings;
 
 [AttributeUsage(AttributeTargets.Class)]
-public sealed class SettingsDraftVmAttribute : Attribute
+public  class SettingsDraftVmAttribute : Attribute
 {
     public SettingsDraftVmAttribute(Type documentType) { }
 }
 
 [AttributeUsage(AttributeTargets.Class)]
-public sealed class SettingsDraftRootAttribute : Attribute
+public  class SettingsDraftRootAttribute : Attribute
 {
     public SettingsDraftRootAttribute(string path) { }
 }
 
 [AttributeUsage(AttributeTargets.Property)]
-public sealed class SettingsProxyAttribute : Attribute
+public  class SettingsProxyAttribute : Attribute
 {
     public SettingsProxyAttribute() { }
     public SettingsProxyAttribute(string memberPath) { }
@@ -151,7 +151,7 @@ using System.ComponentModel;
 
 namespace ComposableSettings.Testing;
 
-public sealed class TestSettingsProvider<TSettings> : ISettingsProvider<TSettings>
+public  class TestSettingsProvider<TSettings> : ISettingsProvider<TSettings>
     where TSettings : class, INotifyPropertyChanged, new()
 {
     private TSettings _current = new();

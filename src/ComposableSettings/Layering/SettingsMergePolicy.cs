@@ -1,7 +1,7 @@
 namespace ComposableSettings.Layering;
 
 /// <summary>Declarative rules for defaults → pack → user document merge.</summary>
-public sealed class SettingsMergePolicy
+public  class SettingsMergePolicy
 {
     /// <summary>Root JSON properties (camelCase) merged from pack and user overlays.</summary>
     public HashSet<string> MergeableRootProperties { get; } = new(StringComparer.OrdinalIgnoreCase);

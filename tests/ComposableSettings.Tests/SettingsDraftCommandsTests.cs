@@ -2,9 +2,9 @@ using ComposableSettings.Document;
 
 namespace ComposableSettings.Tests;
 
-public sealed class SettingsDraftCommandsTests
+public  class SettingsDraftCommandsTests
 {
-    public sealed class CmdDocument
+    public  class CmdDocument
     {
         public string Name { get; set; } = "default";
     }
@@ -46,7 +46,7 @@ public sealed class SettingsDraftCommandsTests
         Assert.Equal("saved", session.Draft.Name);
     }
 
-    private sealed class TestDocumentStore : ISettingsDocumentStore<CmdDocument>
+    private  class TestDocumentStore : ISettingsDocumentStore<CmdDocument>
     {
         private CmdDocument _effective = new();
         private CmdDocument _user = new();

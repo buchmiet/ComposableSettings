@@ -251,13 +251,13 @@ public class SettingsModelGenerator : IIncrementalGenerator
         ChildReadOnly
     }
 
-    private sealed class Candidate(ClassDeclarationSyntax syntax, INamedTypeSymbol symbol)
+    private  class Candidate(ClassDeclarationSyntax syntax, INamedTypeSymbol symbol)
     {
         public ClassDeclarationSyntax Syntax { get; } = syntax;
         public INamedTypeSymbol Symbol { get; } = symbol;
     }
 
-    private sealed class FieldModel(string fieldName, string propertyName, string typeName, FieldKind kind)
+    private  class FieldModel(string fieldName, string propertyName, string typeName, FieldKind kind)
     {
         public string FieldName { get; } = fieldName;
         public string PropertyName { get; } = propertyName;

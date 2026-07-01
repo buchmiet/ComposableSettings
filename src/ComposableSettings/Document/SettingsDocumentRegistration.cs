@@ -4,7 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace ComposableSettings.Document;
 
-internal sealed class SettingsDocumentRegistration<TDocument>
+internal  class SettingsDocumentRegistration<TDocument>
     where TDocument : class, new()
 {
     private readonly List<Action<SettingsDocumentOptionsBuilder<TDocument>>> _documentConfigs = [];
