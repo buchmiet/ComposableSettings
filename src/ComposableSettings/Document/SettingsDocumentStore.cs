@@ -52,7 +52,7 @@ public  class SettingsDocumentStore<TDocument> : ISettingsDocumentStore<TDocumen
 
         var factory = new DebounceFactory();
         _snapshotSink = _options.UseAtomicWrites
-            ? factory.CreateSnapshot<TDocument>(_options.FilePath, _options.AutosaveDelay, _serializer.Serialize)
+            ? factory.CreateSnapshot<TDocument>(_options.FilePath, _options.AutosaveDelay, _serializer.SerializeUtf8)
             : factory.CreateLatest<TDocument>(_options.AutosaveDelay, (doc, _) =>
             {
                 Utf8SettingsFile.WriteAllBytes(_options.FilePath, _serializer.SerializeUtf8(doc));
