@@ -1,6 +1,6 @@
 using System.ComponentModel;
 using ComposableSettings.Runtime;
-using IDebouncer = Debouncer.Sharp.IDebouncer;
+using IDebouncer = Debouncer.Sharp.Contracts.IDebouncer;
 using SharpDebouncer = Debouncer.Sharp.Debouncer;
 
 namespace ComposableSettings;

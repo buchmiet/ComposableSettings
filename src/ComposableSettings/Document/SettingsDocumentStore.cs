@@ -1,8 +1,8 @@
 using ComposableSettings.Layering;
 using ComposableSettings.Packs;
-using ComposableSettings.Stores;
-using IDebouncer = Debouncer.Sharp.IDebouncer;
-using SharpDebouncer = Debouncer.Sharp.Debouncer;
+using Debouncer.Sharp;
+using Debouncer.Sharp.Contracts;
+using Debouncer.Sharp.FileSystem;
 
 namespace ComposableSettings.Document;
 
@@ -18,11 +18,10 @@ public sealed class SettingsDocumentStore<TDocument> : ISettingsDocumentStore<TD
     private readonly ISettingsLayerMerger<TDocument>? _merger;
     private readonly ISettingsPackCatalog<TDocument>? _packCatalog;
     private readonly Func<TDocument, string?>? _packIdResolver;
-    private readonly IDebouncer _commitDebouncer;
+    private readonly IDebouncedLatest<TDocument> _snapshotSink;
     private readonly object _gate = new();
     private TDocument _userLayer = new();
     private TDocument _effective = new();
-    private TDocument? _pendingCommit;
     private bool _disposed;
 
     public SettingsDocumentStore(SettingsDocumentOptions<TDocument> options)
@@ -48,7 +47,16 @@ public sealed class SettingsDocumentStore<TDocument> : ISettingsDocumentStore<TD
         _packCatalog = packCatalog;
         _packIdResolver = packIdResolver;
         _serializer = _options.Serializer ?? new JsonSettingsDocumentSerializer<TDocument>();
-        _commitDebouncer = new SharpDebouncer(_options.AutosaveDelay);
+
+        var factory = new DebounceFactory();
+        _snapshotSink = _options.UseAtomicWrites
+            ? factory.CreateSnapshot<TDocument>(_options.FilePath, _options.AutosaveDelay, _serializer.Serialize)
+            : factory.CreateLatest<TDocument>(_options.AutosaveDelay, (doc, _) =>
+            {
+                File.WriteAllText(_options.FilePath, _serializer.Serialize(doc));
+                return Task.CompletedTask;
+            });
+
         (_userLayer, _effective) = LoadInitialState();
     }
 
@@ -90,40 +98,36 @@ public sealed class SettingsDocumentStore<TDocument> : ISettingsDocumentStore<TD
         ArgumentNullException.ThrowIfNull(userLayerDraft);
         cancellationToken.ThrowIfCancellationRequested();
 
+        TDocument snapshot;
         lock (_gate)
         {
-            _pendingCommit = _serializer.Clone(userLayerDraft);
-            _options.Normalize?.Invoke(_pendingCommit);
-            _userLayer = _serializer.Clone(_pendingCommit);
+            var normalized = _serializer.Clone(userLayerDraft);
+            _options.Normalize?.Invoke(normalized);
+            _userLayer = _serializer.Clone(normalized);
             RebuildEffectiveLocked();
             EffectiveChanged?.Invoke(this, EventArgs.Empty);
+            snapshot = _serializer.Clone(_userLayer);
         }
 
-        _ = _commitDebouncer.HitAsync(_ =>
-        {
-            FlushPendingCommit();
-            return Task.CompletedTask;
-        });
-
+        // The sink serializes on its own schedule, outside this lock — hand it an independent
+        // clone so a later Preview/CommitAsync can't mutate the value while it's pending.
+        _snapshotSink.Hit(snapshot);
         return Task.CompletedTask;
     }
 
-    public Task FlushAsync(CancellationToken cancellationToken = default)
+    public async Task FlushAsync(CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        _commitDebouncer.Cancel();
-        FlushPendingCommit();
-        return Task.CompletedTask;
+        await _snapshotSink.FlushAsync(cancellationToken).ConfigureAwait(false);
     }
 
     public Task ReloadAsync(CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        _commitDebouncer.Cancel();
+        _snapshotSink.Cancel();
 
         lock (_gate)
         {
-            _pendingCommit = null;
             (_userLayer, _effective) = LoadFromDiskLocked();
             EffectiveChanged?.Invoke(this, EventArgs.Empty);
         }
@@ -131,21 +135,23 @@ public sealed class SettingsDocumentStore<TDocument> : ISettingsDocumentStore<TD
         return Task.CompletedTask;
     }
 
-    public Task ResetUserLayerAsync(CancellationToken cancellationToken = default)
+    public async Task ResetUserLayerAsync(CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        _commitDebouncer.Cancel();
+        _snapshotSink.Cancel();
 
+        TDocument snapshot;
         lock (_gate)
         {
-            _pendingCommit = null;
             _userLayer = new TDocument();
             RebuildEffectiveLocked();
-            PersistUserLayerLocked(_userLayer);
+            snapshot = _serializer.Clone(_userLayer);
             EffectiveChanged?.Invoke(this, EventArgs.Empty);
         }
 
-        return Task.CompletedTask;
+        // Reset persists immediately rather than waiting out the debounce window: hit then flush.
+        _snapshotSink.Hit(snapshot);
+        await _snapshotSink.FlushAsync(cancellationToken).ConfigureAwait(false);
     }
 
     internal void ReloadFromPackCache()
@@ -163,9 +169,25 @@ public sealed class SettingsDocumentStore<TDocument> : ISettingsDocumentStore<TD
             return;
 
         _disposed = true;
-        _commitDebouncer.Cancel();
-        FlushPendingCommit();
-        _commitDebouncer.Dispose();
+
+        // IDebouncedLatest.Dispose() only cancels the pending timer, by design (it avoids a
+        // sync-over-async deadlock risk when a caller marshals onto a UI thread). This store has
+        // no such caller and existing consumers rely on Dispose flushing the last commit, so
+        // block on FlushAsync here deliberately before disposing the sink.
+        try
+        {
+            _snapshotSink.FlushAsync().GetAwaiter().GetResult();
+        }
+        catch
+        {
+            // Dispose() must not throw and must not leak the sink's timer/semaphore. A caller
+            // that needs to observe a failed final write should call FlushAsync() explicitly
+            // before disposing — that path still propagates exceptions normally.
+        }
+        finally
+        {
+            _snapshotSink.Dispose();
+        }
     }
 
     private (TDocument User, TDocument Effective) LoadInitialState()
@@ -242,30 +264,5 @@ public sealed class SettingsDocumentStore<TDocument> : ISettingsDocumentStore<TD
     {
         var empty = new TDocument();
         return _serializer.Serialize(user) == _serializer.Serialize(empty);
-    }
-
-    private void FlushPendingCommit()
-    {
-        TDocument? toWrite;
-        lock (_gate)
-        {
-            toWrite = _pendingCommit is null ? null : _serializer.Clone(_pendingCommit);
-            _pendingCommit = null;
-        }
-
-        if (toWrite is null)
-            return;
-
-        lock (_gate)
-            PersistUserLayerLocked(toWrite);
-    }
-
-    private void PersistUserLayerLocked(TDocument userLayer)
-    {
-        var json = _serializer.Serialize(userLayer);
-        if (_options.UseAtomicWrites)
-            AtomicFileWrite.WriteAllText(_options.FilePath, json);
-        else
-            File.WriteAllText(_options.FilePath, json);
     }
 }

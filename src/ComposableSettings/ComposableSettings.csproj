@@ -17,26 +17,23 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Debouncer.Sharp" Version="1.0.2"/>
-        <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.7"/>
+        <PackageReference Include="Debouncer.Sharp" Version="1.0.6" />
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.9" />
     </ItemGroup>
 
     <!-- Local development: generator as analyzer -->
     <ItemGroup>
-        <ProjectReference Include="..\ComposableSettings.Generator\ComposableSettings.Generator.csproj"
-                          OutputItemType="Analyzer"
-                          ReferenceOutputAssembly="false"/>
+        <ProjectReference Include="..\ComposableSettings.Generator\ComposableSettings.Generator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
     </ItemGroup>
 
     <!-- Pack the generator DLLs into the NuGet package as analyzers (Strategy A) -->
     <ItemGroup>
-        <None Include="..\ComposableSettings.Generator\bin\$(Configuration)\netstandard2.0\ComposableSettings.Generator.dll"
-              Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false"/>
+        <None Include="..\ComposableSettings.Generator\bin\$(Configuration)\netstandard2.0\ComposableSettings.Generator.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
     </ItemGroup>
 
     <!-- Pack README -->
     <ItemGroup>
-        <None Include="..\..\README.md" Pack="true" PackagePath="/" Visible="false"/>
+        <None Include="..\..\README.md" Pack="true" PackagePath="/" Visible="false" />
     </ItemGroup>
 
 </Project>
