@@ -4,7 +4,10 @@ using ComposableSettings.Document;
 
 namespace ComposableSettings.Layering;
 
-public  class JsonSettingsLayerMerger<TDocument> : ISettingsLayerMerger<TDocument>
+public class JsonSettingsLayerMerger<TDocument>(
+    SettingsMergePolicy policy,
+    ISettingsDocumentSerializer<TDocument> serializer)
+    : ISettingsLayerMerger<TDocument>
     where TDocument : class, new()
 {
     private static readonly JsonSerializerOptions JsonOptions = new()
@@ -12,16 +15,7 @@ public  class JsonSettingsLayerMerger<TDocument> : ISettingsLayerMerger<TDocumen
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
     };
 
-    private readonly SettingsMergePolicy _policy;
-    private readonly ISettingsDocumentSerializer<TDocument> _serializer;
-
-    public JsonSettingsLayerMerger(
-        SettingsMergePolicy policy,
-        ISettingsDocumentSerializer<TDocument> serializer)
-    {
-        _policy = policy ?? throw new ArgumentNullException(nameof(policy));
-        _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
-    }
+    private readonly int _ = EnsureNotNull(policy, serializer);
 
     public TDocument Merge(TDocument defaults, TDocument? packOverlay, TDocument userLayer)
     {
@@ -42,7 +36,7 @@ public  class JsonSettingsLayerMerger<TDocument> : ISettingsLayerMerger<TDocumen
 
     private void ApplyLayer(JsonObject target, JsonObject overlay, JsonObject overlayDefaults, bool isPackLayer)
     {
-        var mergeMode = isPackLayer ? _policy.PackMergeMode : _policy.UserMergeMode;
+        var mergeMode = isPackLayer ? policy.PackMergeMode : policy.UserMergeMode;
         var properties = ResolveMergeableProperties(isPackLayer);
 
         if (properties.Count == 0)
@@ -79,13 +73,13 @@ public  class JsonSettingsLayerMerger<TDocument> : ISettingsLayerMerger<TDocumen
 
     private HashSet<string> ResolveMergeableProperties(bool isPackLayer)
     {
-        if (_policy.MergeableRootProperties.Count == 0)
+        if (policy.MergeableRootProperties.Count == 0)
             return [];
 
-        var set = new HashSet<string>(_policy.MergeableRootProperties, StringComparer.OrdinalIgnoreCase);
+        var set = new HashSet<string>(policy.MergeableRootProperties, StringComparer.OrdinalIgnoreCase);
         if (isPackLayer)
         {
-            set.ExceptWith(_policy.ExcludedFromPackMerge);
+            set.ExceptWith(policy.ExcludedFromPackMerge);
         }
 
         return set;
@@ -93,7 +87,7 @@ public  class JsonSettingsLayerMerger<TDocument> : ISettingsLayerMerger<TDocumen
 
     private void ApplyUserOwnedRootProperties(JsonObject target, JsonObject userNode)
     {
-        foreach (var propertyName in _policy.UserOwnedRootProperties)
+        foreach (var propertyName in policy.UserOwnedRootProperties)
         {
             if (userNode.TryGetPropertyValue(propertyName, out var value))
                 target[propertyName] = value?.DeepClone();
@@ -162,5 +156,14 @@ public  class JsonSettingsLayerMerger<TDocument> : ISettingsLayerMerger<TDocumen
         JsonSerializer.SerializeToNode(document, JsonOptions) as JsonObject ?? new JsonObject();
 
     private TDocument Deserialize(JsonObject node) =>
-        JsonSerializer.Deserialize<TDocument>(node.ToJsonString(), JsonOptions) ?? new TDocument();
+        node.Deserialize<TDocument>(JsonOptions) ?? new TDocument();
+
+    private static int EnsureNotNull(
+        SettingsMergePolicy policy,
+        ISettingsDocumentSerializer<TDocument> serializer)
+    {
+        ArgumentNullException.ThrowIfNull(policy);
+        ArgumentNullException.ThrowIfNull(serializer);
+        return 0;
+    }
 }

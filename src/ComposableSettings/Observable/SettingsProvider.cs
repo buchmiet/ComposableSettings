@@ -16,13 +16,13 @@ namespace ComposableSettings.Observable;
 /// Persistence debounce is opt-in: the live instance changes immediately, while
 /// writes to the backing store can be coalesced with <see cref="SettingsProviderOptions"/>.
 /// </summary>
-public  class SettingsProvider<TSettings> : ISettingsProvider<TSettings>, IDisposable
+public class SettingsProvider<TSettings> : ISettingsProvider<TSettings>, IDisposable
     where TSettings : class, INotifyPropertyChanged, new()
 {
     private readonly IComponentSettingsProvider _file;
     private readonly SettingsNodePath _node;
     private readonly IDebouncer? _persistDebouncer;
-    private readonly object _persistGate = new();
+    private readonly Lock _persistGate = new();
     private TSettings _current = null!;
     private bool _hasPendingPersist;
     private bool _disposed;
@@ -40,7 +40,8 @@ public  class SettingsProvider<TSettings> : ISettingsProvider<TSettings>, IDispo
         _file = file ?? throw new ArgumentNullException(nameof(file));
         _node = node ?? throw new ArgumentNullException(nameof(node));
 
-        var persistDebounceDelay = options?.PersistDebounceDelay;
+        var resolved = options ?? SettingsProviderOptions.Default;
+        var persistDebounceDelay = resolved.PersistDebounceDelay;
         if (persistDebounceDelay <= TimeSpan.Zero)
             throw new ArgumentOutOfRangeException(nameof(options), "Persist debounce delay must be greater than zero.");
 

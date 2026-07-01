@@ -6,7 +6,11 @@ public interface ISettingsDocumentSerializer<TDocument>
 {
     TDocument Deserialize(string? json, TDocument defaults);
 
+    TDocument Deserialize(ReadOnlySpan<byte> utf8Json, TDocument defaults);
+
     string Serialize(TDocument value);
+
+    byte[] SerializeUtf8(TDocument value);
 
     TDocument Clone(TDocument value);
 }

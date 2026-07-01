@@ -26,7 +26,7 @@ internal static class JsonDocumentMerge
         var overlayNode = JsonSerializer.SerializeToNode(overlay, MergeOptions) as JsonObject ?? new JsonObject();
         var overlayDefaultNode = JsonSerializer.SerializeToNode(overlayDefaults, MergeOptions) as JsonObject ?? new JsonObject();
         DeepMergeNonDefault(baselineNode, overlayNode, overlayDefaultNode);
-        return JsonSerializer.Deserialize<TDocument>(baselineNode.ToJsonString(), MergeOptions) ?? new TDocument();
+        return baselineNode.Deserialize<TDocument>(MergeOptions) ?? new TDocument();
     }
 
     /// <summary>Full deep merge for pack overlays (pack replaces defaults subtree).</summary>
@@ -39,7 +39,7 @@ internal static class JsonDocumentMerge
         var baselineNode = JsonSerializer.SerializeToNode(baseline, MergeOptions) as JsonObject ?? new JsonObject();
         var packNode = JsonSerializer.SerializeToNode(packOverlay, MergeOptions) as JsonObject ?? new JsonObject();
         DeepMerge(baselineNode, packNode);
-        return JsonSerializer.Deserialize<TDocument>(baselineNode.ToJsonString(), MergeOptions) ?? new TDocument();
+        return baselineNode.Deserialize<TDocument>(MergeOptions) ?? new TDocument();
     }
 
     private static void DeepMerge(JsonObject target, JsonObject overlay)

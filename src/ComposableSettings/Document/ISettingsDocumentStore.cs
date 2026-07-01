@@ -20,14 +20,14 @@ public interface ISettingsDocumentStore<TDocument>
     void Preview(TDocument userLayerDraft);
 
     /// <summary>Persist user layer (debounced when configured).</summary>
-    Task CommitAsync(TDocument userLayerDraft, CancellationToken cancellationToken = default);
+    ValueTask CommitAsync(TDocument userLayerDraft, CancellationToken cancellationToken = default);
 
     /// <summary>Flush any pending debounced commit immediately.</summary>
-    Task FlushAsync(CancellationToken cancellationToken = default);
+    ValueTask FlushAsync(CancellationToken cancellationToken = default);
 
     /// <summary>Re-read user file and rebuild effective.</summary>
-    Task ReloadAsync(CancellationToken cancellationToken = default);
+    ValueTask ReloadAsync(CancellationToken cancellationToken = default);
 
     /// <summary>Clear user layer to empty document, persist, rebuild effective from defaults.</summary>
-    Task ResetUserLayerAsync(CancellationToken cancellationToken = default);
+    ValueTask ResetUserLayerAsync(CancellationToken cancellationToken = default);
 }

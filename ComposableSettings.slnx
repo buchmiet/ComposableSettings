@@ -3,4 +3,5 @@
     <Project Path="src/ComposableSettings.Generator/ComposableSettings.Generator.csproj" />
     <Project Path="tests/ComposableSettings.Tests/ComposableSettings.Tests.csproj" />
     <Project Path="tests/ComposableSettings.Generator.Tests/ComposableSettings.Generator.Tests.csproj" />
+    <Project Path="benchmarks/ComposableSettings.Benchmarks/ComposableSettings.Benchmarks.csproj" />
 </Solution>

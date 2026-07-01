@@ -2,5 +2,5 @@ namespace ComposableSettings.Packs;
 
 public interface ISettingsPackLoader
 {
-    Task<SettingsPackLoadResult?> LoadAsync(string packPath, CancellationToken cancellationToken = default);
+    ValueTask<SettingsPackLoadResult?> LoadAsync(string packPath, CancellationToken cancellationToken = default);
 }

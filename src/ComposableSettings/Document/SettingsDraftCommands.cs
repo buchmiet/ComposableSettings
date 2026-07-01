@@ -16,7 +16,7 @@ public static class SettingsDraftCommands
         store.Preview(session.Draft);
     }
 
-    public static async Task CommitAsync<TDocument>(
+    public static async ValueTask CommitAsync<TDocument>(
         SettingsEditingSession<TDocument> session,
         ISettingsDocumentStore<TDocument> store,
         CancellationToken cancellationToken = default)

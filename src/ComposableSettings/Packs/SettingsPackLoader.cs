@@ -1,3 +1,4 @@
+using System.Text;
 using System.Text.Json;
 using ComposableSettings.Document;
 
@@ -19,12 +20,12 @@ public  class SettingsPackLoader : ISettingsPackLoader
         _options = options ?? throw new ArgumentNullException(nameof(options));
     }
 
-    public Task<SettingsPackLoadResult?> LoadAsync(string packPath, CancellationToken cancellationToken = default)
+    public ValueTask<SettingsPackLoadResult?> LoadAsync(string packPath, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
         if (string.IsNullOrWhiteSpace(packPath))
-            return Task.FromResult<SettingsPackLoadResult?>(null);
+            return ValueTask.FromResult<SettingsPackLoadResult?>(null);
 
         try
         {
@@ -44,11 +45,11 @@ public  class SettingsPackLoader : ISettingsPackLoader
                 SettingsPackArchive.WriteStamp(cacheDirectory, stamp);
             }
 
-            return Task.FromResult(BuildLoadResult(cacheDirectory));
+            return ValueTask.FromResult(BuildLoadResult(cacheDirectory));
         }
         catch
         {
-            return Task.FromResult<SettingsPackLoadResult?>(null);
+            return ValueTask.FromResult<SettingsPackLoadResult?>(null);
         }
     }
 
@@ -61,8 +62,8 @@ public  class SettingsPackLoader : ISettingsPackLoader
         SettingsPackManifest manifest;
         try
         {
-            var json = File.ReadAllText(manifestPath);
-            manifest = JsonSerializer.Deserialize<SettingsPackManifest>(json, ManifestJsonOptions)
+            var utf8Json = Utf8SettingsFile.ReadAllBytes(manifestPath);
+            manifest = JsonSerializer.Deserialize<SettingsPackManifest>(utf8Json, ManifestJsonOptions)
                        ?? throw new InvalidOperationException("Invalid pack manifest.");
         }
         catch (JsonException)
@@ -77,7 +78,9 @@ public  class SettingsPackLoader : ISettingsPackLoader
         if (!File.Exists(overlayPath))
             overlayPath = Path.Combine(rootDirectory, _options.LegacyOverlayFileName);
 
-        string? overlayJson = File.Exists(overlayPath) ? File.ReadAllText(overlayPath) : null;
+        string? overlayJson = File.Exists(overlayPath)
+            ? Encoding.UTF8.GetString(Utf8SettingsFile.ReadAllBytes(overlayPath))
+            : null;
 
         return new SettingsPackLoadResult
         {

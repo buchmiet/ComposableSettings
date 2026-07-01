@@ -66,15 +66,15 @@ public  class SettingsDraftCommandsTests
             EffectiveChanged?.Invoke(this, EventArgs.Empty);
         }
 
-        public Task CommitAsync(CmdDocument userLayerDraft, CancellationToken cancellationToken = default)
+        public ValueTask CommitAsync(CmdDocument userLayerDraft, CancellationToken cancellationToken = default)
         {
             LastCommit = userLayerDraft;
             Preview(userLayerDraft);
-            return Task.CompletedTask;
+            return ValueTask.CompletedTask;
         }
 
-        public Task FlushAsync(CancellationToken cancellationToken = default) => Task.CompletedTask;
-        public Task ReloadAsync(CancellationToken cancellationToken = default) => Task.CompletedTask;
-        public Task ResetUserLayerAsync(CancellationToken cancellationToken = default) => Task.CompletedTask;
+        public ValueTask FlushAsync(CancellationToken cancellationToken = default) => ValueTask.CompletedTask;
+        public ValueTask ReloadAsync(CancellationToken cancellationToken = default) => ValueTask.CompletedTask;
+        public ValueTask ResetUserLayerAsync(CancellationToken cancellationToken = default) => ValueTask.CompletedTask;
     }
 }

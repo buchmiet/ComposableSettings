@@ -2,44 +2,36 @@ using ComposableSettings.Document;
 
 namespace ComposableSettings.Packs;
 
-public  class SettingsPackCatalog<TDocument> : ISettingsPackCatalog<TDocument>
+public class SettingsPackCatalog<TDocument>(
+    SettingsPackOptions options,
+    ISettingsPackLoader loader,
+    ISettingsDocumentSerializer<TDocument> serializer)
+    : ISettingsPackCatalog<TDocument>
     where TDocument : class, new()
 {
-    private readonly SettingsPackOptions _options;
-    private readonly ISettingsPackLoader _loader;
-    private readonly ISettingsDocumentSerializer<TDocument> _serializer;
-    private readonly object _gate = new();
-
-    public SettingsPackCatalog(
-        SettingsPackOptions options,
-        ISettingsPackLoader loader,
-        ISettingsDocumentSerializer<TDocument> serializer)
-    {
-        _options = options ?? throw new ArgumentNullException(nameof(options));
-        _loader = loader ?? throw new ArgumentNullException(nameof(loader));
-        _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
-    }
+    private readonly Lock _gate = new();
+    private readonly int _ = EnsureNotNull(options, loader, serializer);
 
     public event EventHandler? PackCacheChanged;
 
     public IReadOnlyList<SettingsPackInfo> ListInstalled()
     {
-        if (string.IsNullOrWhiteSpace(_options.PacksDirectory))
+        if (string.IsNullOrWhiteSpace(options.PacksDirectory))
             return [];
 
-        Directory.CreateDirectory(_options.PacksDirectory);
+        Directory.CreateDirectory(options.PacksDirectory);
         var results = new List<SettingsPackInfo>();
 
-        foreach (var path in Directory.EnumerateFileSystemEntries(_options.PacksDirectory))
+        foreach (var path in Directory.EnumerateFileSystemEntries(options.PacksDirectory))
         {
             var fileName = Path.GetFileName(path);
             if (string.IsNullOrEmpty(fileName))
                 continue;
 
-            if (File.Exists(path) && !fileName.EndsWith(_options.Extension, StringComparison.OrdinalIgnoreCase))
+            if (File.Exists(path) && !fileName.EndsWith(options.Extension, StringComparison.OrdinalIgnoreCase))
                 continue;
 
-            var load = _loader.LoadAsync(path).GetAwaiter().GetResult();
+            var load = loader.LoadAsync(path).GetAwaiter().GetResult();
             if (load is null)
                 continue;
 
@@ -68,19 +60,19 @@ public  class SettingsPackCatalog<TDocument> : ISettingsPackCatalog<TDocument>
         if (packPath is null)
             return null;
 
-        var load = _loader.LoadAsync(packPath).GetAwaiter().GetResult();
+        var load = loader.LoadAsync(packPath).GetAwaiter().GetResult();
         if (load?.OverlayJson is null)
             return null;
 
-        return _serializer.Deserialize(load.OverlayJson, defaults);
+        return serializer.Deserialize(load.OverlayJson, defaults);
     }
 
     internal void InvalidateCache()
     {
         lock (_gate)
         {
-            if (Directory.Exists(_options.CacheDirectory))
-                Directory.Delete(_options.CacheDirectory, recursive: true);
+            if (Directory.Exists(options.CacheDirectory))
+                Directory.Delete(options.CacheDirectory, recursive: true);
         }
 
         PackCacheChanged?.Invoke(this, EventArgs.Empty);
@@ -88,22 +80,33 @@ public  class SettingsPackCatalog<TDocument> : ISettingsPackCatalog<TDocument>
 
     private string? ResolvePackPath(string packId)
     {
-        if (string.IsNullOrWhiteSpace(_options.PacksDirectory))
+        if (string.IsNullOrWhiteSpace(options.PacksDirectory))
             return null;
 
-        Directory.CreateDirectory(_options.PacksDirectory);
-        var direct = Path.Combine(_options.PacksDirectory, packId);
+        Directory.CreateDirectory(options.PacksDirectory);
+        var direct = Path.Combine(options.PacksDirectory, packId);
         if (Directory.Exists(direct) || File.Exists(direct))
             return direct;
 
-        if (!string.IsNullOrEmpty(_options.Extension)
-            && !packId.EndsWith(_options.Extension, StringComparison.OrdinalIgnoreCase))
+        if (!string.IsNullOrEmpty(options.Extension)
+            && !packId.EndsWith(options.Extension, StringComparison.OrdinalIgnoreCase))
         {
-            var withExtension = Path.Combine(_options.PacksDirectory, packId + _options.Extension);
+            var withExtension = Path.Combine(options.PacksDirectory, packId + options.Extension);
             if (Directory.Exists(withExtension) || File.Exists(withExtension))
                 return withExtension;
         }
 
         return null;
+    }
+
+    private static int EnsureNotNull(
+        SettingsPackOptions options,
+        ISettingsPackLoader loader,
+        ISettingsDocumentSerializer<TDocument> serializer)
+    {
+        ArgumentNullException.ThrowIfNull(options);
+        ArgumentNullException.ThrowIfNull(loader);
+        ArgumentNullException.ThrowIfNull(serializer);
+        return 0;
     }
 }

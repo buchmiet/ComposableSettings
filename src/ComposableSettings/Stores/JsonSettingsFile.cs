@@ -2,6 +2,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using ComposableSettings.Configuration;
+using ComposableSettings.Document;
 using ComposableSettings.Runtime;
 using ComposableSettings.Static;
 
@@ -15,16 +16,12 @@ public class JsonSettingsFile : IComponentSettingsProvider
 {
     private static readonly JsonSerializerOptions SerializerOptions = CreateSerializerOptions();
 
-    private readonly object _gate = new();
+    private readonly Lock _gate = new();
     private JsonObject _document;
 
     public JsonSettingsFile(SettingsFileOptions options)
+        : this(ResolveSettingsFilePath(options))
     {
-        ArgumentNullException.ThrowIfNull(options);
-
-        SettingsFilePath = SettingsPathResolver.ResolveJsonFilePath(options);
-        Directory.CreateDirectory(Path.GetDirectoryName(SettingsFilePath)!);
-        _document = LoadOrCreateDocument(SettingsFilePath);
     }
 
     /// <summary>
@@ -33,11 +30,7 @@ public class JsonSettingsFile : IComponentSettingsProvider
     /// </summary>
     public JsonSettingsFile(string filePath)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(filePath);
-
-        SettingsFilePath = filePath;
-        Directory.CreateDirectory(Path.GetDirectoryName(SettingsFilePath)!);
-        _document = LoadOrCreateDocument(SettingsFilePath);
+        SettingsFilePath = Initialize(filePath, out _document);
     }
 
     public string SettingsFilePath { get; }
@@ -77,6 +70,20 @@ public class JsonSettingsFile : IComponentSettingsProvider
         }
     }
 
+    private static string ResolveSettingsFilePath(SettingsFileOptions options)
+    {
+        ArgumentNullException.ThrowIfNull(options);
+        return SettingsPathResolver.ResolveJsonFilePath(options);
+    }
+
+    private static string Initialize(string filePath, out JsonObject document)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(filePath);
+        Directory.CreateDirectory(Path.GetDirectoryName(filePath)!);
+        document = LoadOrCreateDocument(filePath);
+        return filePath;
+    }
+
     private static JsonSerializerOptions CreateSerializerOptions()
         => new()
         {
@@ -92,11 +99,11 @@ public class JsonSettingsFile : IComponentSettingsProvider
 
         try
         {
-            var json = File.ReadAllText(filePath);
-            if (string.IsNullOrWhiteSpace(json))
+            var utf8Json = Utf8SettingsFile.ReadAllBytes(filePath);
+            if (utf8Json.Length == 0)
                 return new JsonObject();
 
-            return JsonNode.Parse(json) as JsonObject ?? new JsonObject();
+            return JsonNode.Parse(utf8Json) as JsonObject ?? new JsonObject();
         }
         catch
         {
@@ -138,6 +145,7 @@ public class JsonSettingsFile : IComponentSettingsProvider
 
     private void Flush()
     {
-        File.WriteAllText(SettingsFilePath, _document.ToJsonString(SerializerOptions));
+        var utf8Json = JsonSerializer.SerializeToUtf8Bytes(_document, SerializerOptions);
+        Utf8SettingsFile.WriteAllBytes(SettingsFilePath, utf8Json);
     }
 }

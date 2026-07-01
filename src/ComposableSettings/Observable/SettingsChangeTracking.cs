@@ -48,7 +48,8 @@ public static class SettingsChangeTracking
     {
         private readonly INotifyCollectionChanged _collection;
         private readonly Action _onChanged;
-        private readonly HashSet<INotifyPropertyChanged> _items = new();
+        private HashSet<INotifyPropertyChanged> _items = new();
+        private HashSet<INotifyPropertyChanged> _scratch = new();
 
         public CollectionTracker(INotifyCollectionChanged collection, Action onChanged)
         {
@@ -69,23 +70,29 @@ public static class SettingsChangeTracking
 
         private void Resync()
         {
-            var current = new HashSet<INotifyPropertyChanged>();
+            _scratch.Clear();
             if (_collection is IEnumerable items)
+            {
                 foreach (var item in items)
+                {
                     if (item is INotifyPropertyChanged notifier)
-                        current.Add(notifier);
-
-            foreach (var gone in _items.Where(i => !current.Contains(i)).ToList())
-            {
-                gone.PropertyChanged -= OnItemChanged;
-                _items.Remove(gone);
+                        _scratch.Add(notifier);
+                }
             }
 
-            foreach (var added in current.Where(i => !_items.Contains(i)))
+            foreach (var tracked in _items)
             {
-                added.PropertyChanged += OnItemChanged;
-                _items.Add(added);
+                if (!_scratch.Contains(tracked))
+                    tracked.PropertyChanged -= OnItemChanged;
             }
+
+            foreach (var current in _scratch)
+            {
+                if (!_items.Contains(current))
+                    current.PropertyChanged += OnItemChanged;
+            }
+
+            (_items, _scratch) = (_scratch, _items);
         }
     }
 }

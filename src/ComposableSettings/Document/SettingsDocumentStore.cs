@@ -19,7 +19,8 @@ public  class SettingsDocumentStore<TDocument> : ISettingsDocumentStore<TDocumen
     private readonly ISettingsPackCatalog<TDocument>? _packCatalog;
     private readonly Func<TDocument, string?>? _packIdResolver;
     private readonly IDebouncedLatest<TDocument> _snapshotSink;
-    private readonly object _gate = new();
+    private readonly Lazy<byte[]> _emptyUserLayerUtf8;
+    private readonly Lock _gate = new();
     private TDocument _userLayer = new();
     private TDocument _effective = new();
     private bool _disposed;
@@ -47,13 +48,14 @@ public  class SettingsDocumentStore<TDocument> : ISettingsDocumentStore<TDocumen
         _packCatalog = packCatalog;
         _packIdResolver = packIdResolver;
         _serializer = _options.Serializer ?? new JsonSettingsDocumentSerializer<TDocument>();
+        _emptyUserLayerUtf8 = new Lazy<byte[]>(() => _serializer.SerializeUtf8(new TDocument()));
 
         var factory = new DebounceFactory();
         _snapshotSink = _options.UseAtomicWrites
             ? factory.CreateSnapshot<TDocument>(_options.FilePath, _options.AutosaveDelay, _serializer.Serialize)
             : factory.CreateLatest<TDocument>(_options.AutosaveDelay, (doc, _) =>
             {
-                File.WriteAllText(_options.FilePath, _serializer.Serialize(doc));
+                Utf8SettingsFile.WriteAllBytes(_options.FilePath, _serializer.SerializeUtf8(doc));
                 return Task.CompletedTask;
             });
 
@@ -93,7 +95,7 @@ public  class SettingsDocumentStore<TDocument> : ISettingsDocumentStore<TDocumen
         }
     }
 
-    public Task CommitAsync(TDocument userLayerDraft, CancellationToken cancellationToken = default)
+    public ValueTask CommitAsync(TDocument userLayerDraft, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(userLayerDraft);
         cancellationToken.ThrowIfCancellationRequested();
@@ -112,16 +114,16 @@ public  class SettingsDocumentStore<TDocument> : ISettingsDocumentStore<TDocumen
         // The sink serializes on its own schedule, outside this lock — hand it an independent
         // clone so a later Preview/CommitAsync can't mutate the value while it's pending.
         _snapshotSink.Hit(snapshot);
-        return Task.CompletedTask;
+        return ValueTask.CompletedTask;
     }
 
-    public async Task FlushAsync(CancellationToken cancellationToken = default)
+    public async ValueTask FlushAsync(CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         await _snapshotSink.FlushAsync(cancellationToken).ConfigureAwait(false);
     }
 
-    public Task ReloadAsync(CancellationToken cancellationToken = default)
+    public ValueTask ReloadAsync(CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         _snapshotSink.Cancel();
@@ -132,10 +134,10 @@ public  class SettingsDocumentStore<TDocument> : ISettingsDocumentStore<TDocumen
             EffectiveChanged?.Invoke(this, EventArgs.Empty);
         }
 
-        return Task.CompletedTask;
+        return ValueTask.CompletedTask;
     }
 
-    public async Task ResetUserLayerAsync(CancellationToken cancellationToken = default)
+    public async ValueTask ResetUserLayerAsync(CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         _snapshotSink.Cancel();
@@ -212,8 +214,8 @@ public  class SettingsDocumentStore<TDocument> : ISettingsDocumentStore<TDocumen
 
         try
         {
-            var json = File.ReadAllText(_options.FilePath);
-            return _serializer.Deserialize(json, defaults);
+            var utf8Json = Utf8SettingsFile.ReadAllBytes(_options.FilePath);
+            return _serializer.Deserialize(utf8Json, defaults);
         }
         catch
         {
@@ -261,8 +263,5 @@ public  class SettingsDocumentStore<TDocument> : ISettingsDocumentStore<TDocumen
     }
 
     private bool IsEffectivelyEmptyUserLayer(TDocument user)
-    {
-        var empty = new TDocument();
-        return _serializer.Serialize(user) == _serializer.Serialize(empty);
-    }
+        => _serializer.SerializeUtf8(user).AsSpan().SequenceEqual(_emptyUserLayerUtf8.Value);
 }

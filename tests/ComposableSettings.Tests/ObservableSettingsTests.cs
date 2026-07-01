@@ -10,7 +10,7 @@ public  class ObservableSettingsTests
 {
     private  class CountingComponentSettingsProvider : IComponentSettingsProvider
     {
-        private readonly object _gate = new();
+        private readonly Lock _gate = new();
         private object? _lastValue;
 
         public int SetCount { get; private set; }
