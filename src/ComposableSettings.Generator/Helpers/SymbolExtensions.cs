@@ -7,6 +7,7 @@ namespace ComposableSettings.Generator.Helpers;
 
 internal static class SymbolExtensions
 {
+    private static readonly TypeSystemHelper TypeHelper = new();
     public static bool HasAttribute(this ISymbol symbol, string attributeFullName)
     {
         return symbol.GetAttributes().Any(attribute => IsAttribute(attribute, attributeFullName));
@@ -19,8 +20,16 @@ internal static class SymbolExtensions
 
     public static string ToGlobalTypeName(this ITypeSymbol type)
     {
-        return type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+        if (type is INamedTypeSymbol named)
+            return TypeHelper.FormatTypeForUsage(TypeHelper.BuildFullTypeName(named), useGlobalPrefix: true);
+
+        return TypeHelper.FormatTypeForUsage(
+            type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
+            useGlobalPrefix: true);
     }
+
+    public static string EscapeIdentifier(this string identifier)
+        => TypeHelper.EscapeIdentifier(identifier);
 
     public static string GetNamespaceName(this INamedTypeSymbol type)
     {
