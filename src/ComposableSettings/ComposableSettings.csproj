@@ -7,9 +7,9 @@
         <Nullable>enable</Nullable>
         <RootNamespace>ComposableSettings</RootNamespace>
 
-        <!-- NuGet packaging -->
+        <!-- NuGet packaging: published version comes from git tag vX.Y.Z (see README). -->
         <PackageId>ComposableSettings</PackageId>
-        <Version>1.0.0</Version>
+        <Version>2.0.0</Version>
         <Authors>Actuator Contributors</Authors>
         <Description>Component-based settings composition with source-generated child wiring, registration, and DI.</Description>
         <PackageTags>settings;composition;source-generator;roslyn;dotnet;component-settings;modular-settings</PackageTags>

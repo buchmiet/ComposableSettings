@@ -25,18 +25,35 @@ clock.Current.BaseColor = "#00FF00";   // persisted automatically; bindings upda
 ## Install
 
 ```xml
-<PackageReference Include="ComposableSettings" Version="1.0.*" />
+<PackageReference Include="ComposableSettings" Version="2.0.0" />
 ```
 
 Targets `net10.0`. The source generators ship inside the package as analyzers, so
 they activate automatically on install — no extra reference needed.
 
-Versioning follows CI run numbers (`1.0.{run}`) on pushes to `main` (see
-`.github/workflows/publish-nuget.yml`). The `<Version>` in the csproj is a local placeholder;
-**CI sets `PackageVersion` at pack time.**
+### Versioning (SemVer + git tags)
 
-**Actuator consumers** use `Version="1.0.*"` and pick up the latest publish on restore — do not
-pin build numbers in actuator csproj. Cross-repo workflow:
+Published NuGet versions follow **[Semantic Versioning](https://semver.org/)** and come from **git tags**, not CI run numbers.
+
+| Tag | NuGet `PackageVersion` |
+|-----|------------------------|
+| `v2.0.0` | `2.0.0` |
+| `v2.1.0` | `2.1.0` |
+
+**Release workflow** (after merging to `main`):
+
+```bash
+git tag v2.0.0
+git push origin v2.0.0
+```
+
+Pushing a tag matching `vMAJOR.MINOR.PATCH` triggers [`.github/workflows/publish-nuget.yml`](.github/workflows/publish-nuget.yml): build, test, pack, push to NuGet.org.
+
+- **CI only** (no publish) runs on every push/PR to `main` via [`.github/workflows/ci.yml`](.github/workflows/ci.yml).
+- `<Version>` in the csproj is for **local** `dotnet pack`; the tag (or manual workflow dispatch) sets the published version.
+- **Breaking changes** → bump major (`v3.0.0`). New features → minor. Fixes → patch.
+
+**Actuator / downstream consumers:** pin an explicit version or a floating range, e.g. `Version="2.0.*"` — not `1.0.{build}`. Cross-repo workflow:
 [`actuator/docs/COMPOSABLESETTINGS_PACKAGE_WORKFLOW.md`](../actuator/docs/COMPOSABLESETTINGS_PACKAGE_WORKFLOW.md).
 
 ## Document profile (preview/commit)

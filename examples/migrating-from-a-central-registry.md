@@ -132,7 +132,7 @@ See actuator `SETTINGS_CLOCK_VM_REFACTOR_ALPHA.md`.
 
 ## Suggested order (incremental, each step builds & ships)
 
-1. Add `PackageReference Include="ComposableSettings" Version="1.0.*"`; remove any in-repo
+1. Add `PackageReference Include="ComposableSettings" Version="2.0.*"` (or pin `2.0.0`); remove any in-repo
    settings adapter/registry.
 2. Migrate **one vertical slice** (e.g. Clock): model → `[SettingsModel]`, editor VM →
    `[SettingsVm]`, register file + provider, bind directly. Verify edit → persist → reload.
