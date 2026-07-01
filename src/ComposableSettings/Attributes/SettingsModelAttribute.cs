@@ -1,4 +1,4 @@
-namespace ComposableSettings;
+namespace ComposableSettings.Attributes;
 
 /// <summary>
 /// Marks a settings model (leaf). The <c>SettingsModelGenerator</c> turns the

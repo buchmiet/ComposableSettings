@@ -1,6 +1,6 @@
 using System;
 
-namespace IndentedStringBuilder;
+namespace ComposableSettings.Generator.IndentedStringBuilder;
 
 /// <summary>
 ///  Wywołuje podaną akcję przy Dispose().

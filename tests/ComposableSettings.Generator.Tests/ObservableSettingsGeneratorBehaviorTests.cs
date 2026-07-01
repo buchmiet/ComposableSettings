@@ -5,7 +5,7 @@ namespace ComposableSettings.Generator.Tests;
 public class ObservableSettingsGeneratorBehaviorTests(ITestOutputHelper output) : GeneratorBaseClass(output)
 {
     private const string ClockSettingsSource = """
-        using ComposableSettings;
+        using ComposableSettings.Attributes;
 
         namespace Demo.Behavior;
 
@@ -18,7 +18,8 @@ public class ObservableSettingsGeneratorBehaviorTests(ITestOutputHelper output) 
         """;
 
     private const string ClockViewModelWithProxySource = """
-        using ComposableSettings;
+        using ComposableSettings.Attributes;
+        using ComposableSettings.Observable;
 
         namespace Demo.Behavior;
 
@@ -66,7 +67,8 @@ public class ObservableSettingsGeneratorBehaviorTests(ITestOutputHelper output) 
     public void Manual_BaseColor_projection_receives_PropertyChanged_when_settings_member_changes()
     {
         const string viewModelSource = """
-            using ComposableSettings;
+            using ComposableSettings.Attributes;
+            using ComposableSettings.Observable;
 
             namespace Demo.Behavior;
 
@@ -112,7 +114,8 @@ public class ObservableSettingsGeneratorBehaviorTests(ITestOutputHelper output) 
     {
         const string viewModelSource = """
             using System.Collections.Generic;
-            using ComposableSettings;
+            using ComposableSettings.Attributes;
+            using ComposableSettings.Observable;
 
             namespace Demo.Behavior;
 
@@ -260,7 +263,7 @@ public class ObservableSettingsGeneratorBehaviorTests(ITestOutputHelper output) 
     public void Reports_CSP032_when_settings_proxy_has_no_matching_settings_property()
     {
         const string source = """
-            using ComposableSettings;
+            using ComposableSettings.Attributes;
 
             namespace Demo;
 
@@ -283,7 +286,7 @@ public class ObservableSettingsGeneratorBehaviorTests(ITestOutputHelper output) 
     public void Reports_CSP033_when_settings_proxy_type_does_not_match_settings_property()
     {
         const string source = """
-            using ComposableSettings;
+            using ComposableSettings.Attributes;
 
             namespace Demo;
 

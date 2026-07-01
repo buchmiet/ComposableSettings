@@ -114,7 +114,7 @@ public class SettingsConsumerGenerator : IIncrementalGenerator
 
         using (sb.Block($"{accessibility} partial class {type.Name.EscapeIdentifier()} : global::System.ComponentModel.INotifyPropertyChanged"))
         {
-            sb.AddProperty($"private global::ComposableSettings.ISettingsProvider<{settingsType}> _settingsProvider", "null!");
+            sb.AddProperty($"private {GeneratorConstants.ISettingsProvider}<{settingsType}> _settingsProvider", "null!");
             sb.AddProperty($"private {settingsType}? _hookedSettings");
             sb.AppendLine();
             sb.AppendLine($"public {settingsType} Settings => _settingsProvider.Current;");
@@ -122,19 +122,15 @@ public class SettingsConsumerGenerator : IIncrementalGenerator
             sb.AppendLine("public event global::System.ComponentModel.PropertyChangedEventHandler? PropertyChanged;");
             sb.AppendLine();
 
-            using (sb.Block($"private void InitializeGeneratedSettings(global::ComposableSettings.ISettingsProvider<{settingsType}> provider)"))
+            using (sb.Block($"private void InitializeGeneratedSettings({GeneratorConstants.ISettingsProvider}<{settingsType}> provider)"))
             {
                 sb.AppendLine("_settingsProvider = provider;");
                 sb.AppendLine("RehookGeneratedSettings();");
-                sb.AppendLine("provider.Replaced += (_, _) =>");
-                sb.AppendLine("{");
-                using (sb.Indent())
+                using (sb.Block("provider.Replaced += (_, _) =>", endWithSemicolon: true))
                 {
                     sb.AppendLine("RehookGeneratedSettings();");
                     sb.AppendLine("PropertyChanged?.Invoke(this, new global::System.ComponentModel.PropertyChangedEventArgs(nameof(Settings)));");
                 }
-
-                sb.AppendLine("};");
             }
 
             sb.AppendLine();

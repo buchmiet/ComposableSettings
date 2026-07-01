@@ -12,25 +12,30 @@ public abstract class GeneratorBaseClass(ITestOutputHelper output)
 {
     protected const string ObservableStubsSource = @"
 using System;
+using System.ComponentModel;
 
-namespace ComposableSettings;
-
-[AttributeUsage(AttributeTargets.Class)]
-public class SettingsModelAttribute : Attribute { }
-
-[AttributeUsage(AttributeTargets.Class)]
-public class SettingsConsumerAttribute : Attribute
+namespace ComposableSettings.Attributes
 {
-    public SettingsConsumerAttribute(Type settingsType) { }
+    [AttributeUsage(AttributeTargets.Class)]
+    public class SettingsModelAttribute : Attribute { }
+
+    [AttributeUsage(AttributeTargets.Class)]
+    public class SettingsConsumerAttribute : Attribute
+    {
+        public SettingsConsumerAttribute(Type settingsType) { }
+    }
 }
 
-public interface ISettingsProvider<TSettings>
-    where TSettings : class, System.ComponentModel.INotifyPropertyChanged, new()
+namespace ComposableSettings.Observable
 {
-    TSettings Current { get; }
-    event EventHandler<TSettings>? Replaced;
-    void Reset();
-    void Reload();
+    public interface ISettingsProvider<TSettings>
+        where TSettings : class, INotifyPropertyChanged, new()
+    {
+        TSettings Current { get; }
+        event EventHandler<TSettings>? Replaced;
+        void Reset();
+        void Reload();
+    }
 }
 ";
 
@@ -54,16 +59,17 @@ public interface ISettingsProvider<TSettings>
 using System;
 using System.ComponentModel;
 
-namespace ComposableSettings;
-
-[AttributeUsage(AttributeTargets.Class)]
-public  class SettingsVmAttribute : Attribute
+namespace ComposableSettings.Attributes
 {
-    public SettingsVmAttribute(Type settingsType) { }
-}
+    [AttributeUsage(AttributeTargets.Class)]
+    public class SettingsVmAttribute : Attribute
+    {
+        public SettingsVmAttribute(Type settingsType) { }
+    }
 
-[AttributeUsage(AttributeTargets.Property)]
-public  class SettingsProxyAttribute : Attribute { }
+    [AttributeUsage(AttributeTargets.Property)]
+    public class SettingsProxyAttribute : Attribute { }
+}
 
 public abstract class ObservableObjectStub : INotifyPropertyChanged
 {
@@ -93,25 +99,26 @@ public abstract class ObservableObjectStub : INotifyPropertyChanged
 using System;
 using System.ComponentModel;
 
-namespace ComposableSettings;
-
-[AttributeUsage(AttributeTargets.Class)]
-public  class SettingsDraftVmAttribute : Attribute
+namespace ComposableSettings.Attributes
 {
-    public SettingsDraftVmAttribute(Type documentType) { }
-}
+    [AttributeUsage(AttributeTargets.Class)]
+    public class SettingsDraftVmAttribute : Attribute
+    {
+        public SettingsDraftVmAttribute(Type documentType) { }
+    }
 
-[AttributeUsage(AttributeTargets.Class)]
-public  class SettingsDraftRootAttribute : Attribute
-{
-    public SettingsDraftRootAttribute(string path) { }
-}
+    [AttributeUsage(AttributeTargets.Class)]
+    public class SettingsDraftRootAttribute : Attribute
+    {
+        public SettingsDraftRootAttribute(string path) { }
+    }
 
-[AttributeUsage(AttributeTargets.Property)]
-public  class SettingsProxyAttribute : Attribute
-{
-    public SettingsProxyAttribute() { }
-    public SettingsProxyAttribute(string memberPath) { }
+    [AttributeUsage(AttributeTargets.Property)]
+    public class SettingsProxyAttribute : Attribute
+    {
+        public SettingsProxyAttribute() { }
+        public SettingsProxyAttribute(string memberPath) { }
+    }
 }
 
 public abstract class ObservableObjectStub : INotifyPropertyChanged
@@ -148,6 +155,7 @@ public abstract class ObservableObjectStub : INotifyPropertyChanged
     protected const string BehaviorTestInfrastructureSource = @"
 using System;
 using System.ComponentModel;
+using ComposableSettings.Observable;
 
 namespace ComposableSettings.Testing;
 
@@ -277,7 +285,7 @@ public  class TestSettingsProvider<TSettings> : ISettingsProvider<TSettings>
             .ToList();
 
         references.Add(MetadataReference.CreateFromFile(
-            typeof(global::ComposableSettings.SettingsModelAttribute).Assembly.Location));
+            typeof(global::ComposableSettings.Attributes.SettingsModelAttribute).Assembly.Location));
         references.Add(MetadataReference.CreateFromFile(typeof(IServiceCollection).Assembly.Location));
 
         var compilation = CSharpCompilation.Create(

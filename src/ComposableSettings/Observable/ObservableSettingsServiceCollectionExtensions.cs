@@ -3,7 +3,7 @@ using ComposableSettings.Runtime;
 using ComposableSettings.Stores;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace ComposableSettings;
+namespace ComposableSettings.Observable;
 
 /// <summary>
 /// DI for the new contract. Each OWNER registers its OWN file (keyed), then its

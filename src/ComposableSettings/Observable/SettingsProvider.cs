@@ -3,7 +3,7 @@ using ComposableSettings.Runtime;
 using IDebouncer = Debouncer.Sharp.Contracts.IDebouncer;
 using SharpDebouncer = Debouncer.Sharp.Debouncer;
 
-namespace ComposableSettings;
+namespace ComposableSettings.Observable;
 
 /// <summary>
 /// Default <see cref="ISettingsProvider{TSettings}"/>: holds one live instance,

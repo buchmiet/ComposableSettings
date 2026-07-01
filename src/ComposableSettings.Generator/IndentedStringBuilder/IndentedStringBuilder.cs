@@ -1,7 +1,7 @@
 using System;
 using System.Text;
 
-namespace IndentedStringBuilder;
+namespace ComposableSettings.Generator.IndentedStringBuilder;
 
 /// <summary>
 ///  Lekki wrapper nad <see cref="StringBuilder"/> zapewniający kontrolę wcięć.
@@ -40,7 +40,7 @@ public  class IndentedStringBuilder(string indentUnit = "    ")
         return this;
     }
 
-    public IDisposable Block(string header)
+    public IDisposable Block(string header, bool endWithSemicolon = false)
     {
         AppendLine(header);
         AppendLine("{");
@@ -48,7 +48,7 @@ public  class IndentedStringBuilder(string indentUnit = "    ")
         return new DisposableAction(() =>
         {
             indent.Dispose();
-            AppendLine("}");
+            AppendLine(endWithSemicolon ? "};" : "}");
         });
     }
 

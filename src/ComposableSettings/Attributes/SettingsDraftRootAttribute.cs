@@ -1,4 +1,4 @@
-namespace ComposableSettings;
+namespace ComposableSettings.Attributes;
 
 /// <summary>
 /// Optional prefix for <see cref="SettingsProxyAttribute"/> paths on a

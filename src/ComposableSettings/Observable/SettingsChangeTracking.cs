@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Specialized;
 using System.ComponentModel;
 
-namespace ComposableSettings;
+namespace ComposableSettings.Observable;
 
 /// <summary>
 /// Runtime support used by generated settings models to propagate nested changes

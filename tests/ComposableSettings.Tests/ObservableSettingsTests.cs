@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using ComposableSettings.Observable;
 using ComposableSettings.Runtime;
 using ComposableSettings.Stores;
 using Microsoft.Extensions.DependencyInjection;

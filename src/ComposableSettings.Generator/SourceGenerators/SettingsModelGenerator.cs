@@ -164,7 +164,7 @@ public class SettingsModelGenerator : IIncrementalGenerator
     private static string BuildSource(INamedTypeSymbol type, IReadOnlyList<FieldModel> fields, bool needsConstructor)
     {
         const string pcea = "global::System.ComponentModel.PropertyChangedEventArgs";
-        const string track = "global::ComposableSettings.SettingsChangeTracking";
+        const string track = GeneratorConstants.SettingsChangeTracking;
 
         var accessibility = type.GetAccessibilityText();
         var sb = GeneratedSourceBuilder.Begin(type.GetNamespaceName());

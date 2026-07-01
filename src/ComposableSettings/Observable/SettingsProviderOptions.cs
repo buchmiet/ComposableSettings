@@ -1,4 +1,4 @@
-namespace ComposableSettings;
+namespace ComposableSettings.Observable;
 
 /// <summary>Options for <see cref="SettingsProvider{TSettings}"/>.</summary>
 public  class SettingsProviderOptions

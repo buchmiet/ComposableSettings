@@ -8,7 +8,7 @@ public class SettingsDraftVmGeneratorTests(ITestOutputHelper output) : Generator
     public void Emits_draft_init_nested_proxies_and_preview_on_set()
     {
         const string source = """
-            using ComposableSettings;
+            using ComposableSettings.Attributes;
 
             namespace Demo;
 
@@ -59,7 +59,7 @@ public class SettingsDraftVmGeneratorTests(ITestOutputHelper output) : Generator
     public void Emits_flat_proxy_at_document_root()
     {
         const string source = """
-            using ComposableSettings;
+            using ComposableSettings.Attributes;
 
             namespace Demo;
 
@@ -92,7 +92,7 @@ public class SettingsDraftVmGeneratorTests(ITestOutputHelper output) : Generator
     public void Reports_CSP044_when_not_partial()
     {
         const string source = """
-            using ComposableSettings;
+            using ComposableSettings.Attributes;
 
             namespace Demo;
 
@@ -111,7 +111,7 @@ public class SettingsDraftVmGeneratorTests(ITestOutputHelper output) : Generator
     public void Reports_CSP042_for_invalid_proxy_path()
     {
         const string source = """
-            using ComposableSettings;
+            using ComposableSettings.Attributes;
 
             namespace Demo;
 
@@ -134,7 +134,7 @@ public class SettingsDraftVmGeneratorTests(ITestOutputHelper output) : Generator
     public void Reports_CSP043_for_proxy_type_mismatch()
     {
         const string source = """
-            using ComposableSettings;
+            using ComposableSettings.Attributes;
 
             namespace Demo;
 

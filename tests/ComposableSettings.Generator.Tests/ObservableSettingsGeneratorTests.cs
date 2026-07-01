@@ -8,7 +8,8 @@ public class ObservableSettingsGeneratorTests(ITestOutputHelper output) : Genera
     public void Emits_settings_passthrough_init_and_proxy_bodies_without_owning_INPC()
     {
         const string source = """
-            using ComposableSettings;
+            using ComposableSettings.Attributes;
+            using ComposableSettings.Observable;
 
             namespace Demo;
 
@@ -50,7 +51,8 @@ public class ObservableSettingsGeneratorTests(ITestOutputHelper output) : Genera
     {
         // The whole point: a VM that ALREADY implements INPC must be accepted.
         const string source = """
-            using ComposableSettings;
+            using ComposableSettings.Attributes;
+            using ComposableSettings.Observable;
 
             namespace Demo;
 
@@ -74,7 +76,8 @@ public class ObservableSettingsGeneratorTests(ITestOutputHelper output) : Genera
     public void Reports_CSP030_when_consumer_is_not_partial()
     {
         const string source = """
-            using ComposableSettings;
+            using ComposableSettings.Attributes;
+            using ComposableSettings.Observable;
 
             namespace Demo;
 

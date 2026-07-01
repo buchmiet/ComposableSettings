@@ -1,7 +1,7 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
-namespace ComposableSettings;
+namespace ComposableSettings.Observable;
 
 /// <summary>
 /// Base class for observable (canonical) settings models.

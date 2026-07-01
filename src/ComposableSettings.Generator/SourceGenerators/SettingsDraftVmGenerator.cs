@@ -316,7 +316,7 @@ public class SettingsDraftVmGenerator : IIncrementalGenerator
         return sb.ToString();
     }
 
-    private static void EmitProxyProperty(IndentedStringBuilder.IndentedStringBuilder sb, ProxyInfo proxy)
+    private static void EmitProxyProperty(ComposableSettings.Generator.IndentedStringBuilder.IndentedStringBuilder sb, ProxyInfo proxy)
     {
         var accessor = $"Draft.{proxy.AccessorSuffix}";
         var memberPathLiteral = proxy.MemberPath.Replace("\\", "\\\\").Replace("\"", "\\\"");

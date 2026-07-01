@@ -1,4 +1,4 @@
-namespace ComposableSettings;
+namespace ComposableSettings.Attributes;
 
 /// <summary>
 /// Opt-in projection of a settings/document property onto the consuming VM.

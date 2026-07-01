@@ -209,7 +209,7 @@ public class ObservableSettingsGenerator : IIncrementalGenerator
 
         using (sb.Block($"{accessibility} partial class {type.Name.EscapeIdentifier()}"))
         {
-            sb.AddProperty($"private global::ComposableSettings.ISettingsProvider<{settingsType}> _settingsProvider", "null!");
+            sb.AddProperty($"private {GeneratorConstants.ISettingsProvider}<{settingsType}> _settingsProvider", "null!");
             sb.AddProperty($"private {settingsType}? _hookedSettings");
             sb.AddProperty("private bool _generatedSettingsDisposed");
             sb.AppendLine();
@@ -217,7 +217,7 @@ public class ObservableSettingsGenerator : IIncrementalGenerator
             sb.AppendLine($"public {settingsType} Settings => _settingsProvider.Current;");
             sb.AppendLine();
 
-            using (sb.Block($"private void InitializeSettings(global::ComposableSettings.ISettingsProvider<{settingsType}> provider)"))
+            using (sb.Block($"private void InitializeSettings({GeneratorConstants.ISettingsProvider}<{settingsType}> provider)"))
             {
                 sb.AppendLine("_settingsProvider = provider;");
                 sb.AppendLine("RehookGeneratedSettings();");

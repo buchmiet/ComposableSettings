@@ -1,4 +1,4 @@
-namespace ComposableSettings;
+namespace ComposableSettings.Attributes;
 
 /// <summary>
 /// Marks a consumer (ViewModel/component) of a settings model. The

@@ -8,7 +8,8 @@ public class SettingsConsumerGeneratorTests(ITestOutputHelper output) : Generato
     public void Generates_provider_settings_passthrough_and_init_method()
     {
         const string source = """
-            using ComposableSettings;
+            using ComposableSettings.Attributes;
+            using ComposableSettings.Observable;
 
             namespace Demo;
 
@@ -38,7 +39,8 @@ public class SettingsConsumerGeneratorTests(ITestOutputHelper output) : Generato
     public void Reports_CSP022_when_consumer_is_not_partial()
     {
         const string source = """
-            using ComposableSettings;
+            using ComposableSettings.Attributes;
+            using ComposableSettings.Observable;
 
             namespace Demo;
 

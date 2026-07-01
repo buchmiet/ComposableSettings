@@ -8,7 +8,7 @@ public class SettingsModelGeneratorTests(ITestOutputHelper output) : GeneratorBa
     public void Generates_observable_properties_from_underscore_fields()
     {
         const string source = """
-            using ComposableSettings;
+            using ComposableSettings.Attributes;
 
             namespace Demo;
 
@@ -35,7 +35,7 @@ public class SettingsModelGeneratorTests(ITestOutputHelper output) : GeneratorBa
     public void Reports_CSP020_when_model_is_not_partial()
     {
         const string source = """
-            using ComposableSettings;
+            using ComposableSettings.Attributes;
 
             namespace Demo;
 
@@ -56,7 +56,7 @@ public class SettingsModelGeneratorTests(ITestOutputHelper output) : GeneratorBa
     {
         const string source = """
             using System.Collections.ObjectModel;
-            using ComposableSettings;
+            using ComposableSettings.Attributes;
 
             namespace Demo;
 
@@ -82,7 +82,7 @@ public class SettingsModelGeneratorTests(ITestOutputHelper output) : GeneratorBa
     {
         const string source = """
             using System.Collections.ObjectModel;
-            using ComposableSettings;
+            using ComposableSettings.Attributes;
 
             namespace Demo;
 
@@ -118,7 +118,7 @@ public class SettingsModelGeneratorTests(ITestOutputHelper output) : GeneratorBa
     public void Reports_CSP026_when_nested_object_field_is_readonly()
     {
         const string source = """
-            using ComposableSettings;
+            using ComposableSettings.Attributes;
 
             namespace Demo;
 

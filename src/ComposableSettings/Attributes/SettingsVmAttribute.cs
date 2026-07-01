@@ -1,4 +1,6 @@
-namespace ComposableSettings;
+using ComposableSettings.Observable;
+
+namespace ComposableSettings.Attributes;
 
 /// <summary>
 /// Marks a ViewModel/component that consumes a settings model but ALREADY implements

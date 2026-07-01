@@ -1,4 +1,4 @@
-namespace ComposableSettings;
+namespace ComposableSettings.Attributes;
 
 /// <summary>
 /// Marks a partial ViewModel that edits a <see cref="Document.SettingsEditingSession{T}"/>

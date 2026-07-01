@@ -9,7 +9,7 @@ public class SettingsProxyValidationGeneratorTests(ITestOutputHelper output) : G
     public void Reports_CSP046_for_orphan_settings_proxy()
     {
         const string source = """
-            using ComposableSettings;
+            using ComposableSettings.Attributes;
 
             namespace Demo;
 
@@ -31,7 +31,7 @@ public class SettingsProxyValidationGeneratorTests(ITestOutputHelper output) : G
     public void Reports_CSP048_for_orphan_settings_draft_root()
     {
         const string source = """
-            using ComposableSettings;
+            using ComposableSettings.Attributes;
 
             namespace Demo;
 
@@ -48,7 +48,7 @@ public class SettingsProxyValidationGeneratorTests(ITestOutputHelper output) : G
     public void Reports_CSP041_when_settings_vm_and_draft_vm_combined()
     {
         const string source = """
-            using ComposableSettings;
+            using ComposableSettings.Attributes;
 
             namespace Demo;
 
@@ -69,7 +69,7 @@ public class SettingsProxyValidationGeneratorTests(ITestOutputHelper output) : G
     public void Reports_CSP047_when_proxy_is_not_partial_on_draft_vm()
     {
         const string source = """
-            using ComposableSettings;
+            using ComposableSettings.Attributes;
 
             namespace Demo;
 
@@ -92,7 +92,7 @@ public class SettingsProxyValidationGeneratorTests(ITestOutputHelper output) : G
     public void Does_not_report_CSP046_when_proxy_is_on_settings_draft_vm()
     {
         const string source = """
-            using ComposableSettings;
+            using ComposableSettings.Attributes;
 
             namespace Demo;
 

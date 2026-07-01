@@ -1,6 +1,6 @@
 using System.ComponentModel;
 
-namespace ComposableSettings;
+namespace ComposableSettings.Observable;
 
 /// <summary>
 /// What a consumer (ViewModel/component) receives by DI. It does NOT expose
